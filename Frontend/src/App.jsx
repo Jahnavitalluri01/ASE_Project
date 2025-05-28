@@ -8,6 +8,7 @@ import Services from './Components/Services'
 import Servicesouterview from './Components/Servicesouterview'
 import WaitingForAdminApproval from './Components/Waitingforadminapproval'
 import AdminProvidersRequest from './Components/AdminProvidersRequest'
+import ProviderRequestRejected from './Components/ProviderRequestRejected'
 
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
      <Route path='/servicesouterview' element={<Servicesouterview />}/>
      <Route path='/providerwaiting' element={<WaitingForAdminApproval />} />
      <Route path='/providersrequest' element={<AdminProvidersRequest />} />
+     <Route path='/providerrequestrejected' element={<ProviderRequestRejected />} />
      </Routes>
      </BrowserRouter>
     </>

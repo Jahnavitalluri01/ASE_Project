@@ -45,10 +45,10 @@ const WaitingForAdminApproval = () => {
       </div>
 
       {/* Main Content */}
-      <div className="text-center p-4 border rounded shadow bg-white">
-        <div className="spinner-border text-primary mb-4" role="status">
+      <div className="text-center p-4 border rounded shadow bg-white p-5">
+        {/* <div className="spinner-border text-primary mb-4" role="status">
           <span className="visually-hidden">Loading...</span>
-        </div>
+        </div> */}
         <h2 className="mb-3">Waiting for Admin Approval</h2>
         <p className="text-muted fs-4">
           Your account has been submitted successfully. Please wait while an admin reviews your request.

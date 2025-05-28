@@ -57,7 +57,7 @@ function Navbar() {
                     </li>
                   </>
                 )}
-{console.log("User:"+user.name+" "+user.role+" "+user.is_approved+" "+user.picture+" "+user.email)}
+{console.log("User:"+user.name+" "+user.role+" "+user.status+" "+user.picture+" "+user.email)}
                 {/* ===== Customer View ===== */}
                 {user.role === "customer" && (
                   <>
@@ -90,7 +90,7 @@ function Navbar() {
                 )}
 
                 {/* ===== Provider View ===== */}
-                {user.role === "provider" && user.is_approved ? (
+                {user.role === "provider" && user.status=="approved" ? (
                   <>
                     <li className="nav-item ps-4">
                       <Link to="/provider/dashboard" className="nav-link darkcolor m-0">Provider Dashboard</Link>
@@ -115,7 +115,7 @@ function Navbar() {
                       </ul>
                     </li>
                   </>
-                ) : user.role === "provider" ? (
+                ) : user.role === "provider" && user.status=="pending" || user.status=="rejected" ? (
                   <>
                     <li className="nav-item ps-4">
                       <Link to="/" className="nav-link darkcolor m-0" onClick={handleLogout}>
