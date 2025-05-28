@@ -62,13 +62,17 @@ function Login() {
 
       // Check approval status
       if (user.role === "provider") {
-        console.log("User role is provider:", user.is_approved);
-        if (user.is_approved) {
-          console.log("User role is provider:", user.is_approved);
+        console.log("User role is provider:", user.status);
+        if (user.status === "approved") {
+          console.log("User role is provider:", user.status);
           navigate("/");
-        } else {  
+        } else if (user.status === "pending") {  
           console.log("In waiting")
           navigate("/providerwaiting");
+        }
+        else{
+          console.log("User is rejected")
+          navigate('/providerrequestrejected');
         }
       } else {
         alert("Unauthorized role");

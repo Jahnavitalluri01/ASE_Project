@@ -10,13 +10,13 @@ const findByGoogleId = async (googleId) => {
   return result.rows[0];
 };
 
-const create = async ({ googleId, email, name, picture,role,is_approved }) => {
+const create = async ({ googleId, email, name, picture,role,status }) => {
   const query = `
-    INSERT INTO users (google_id, email, name, picture,role, is_approved)
+    INSERT INTO users (google_id, email, name, picture,role,status)
     VALUES ($1, $2, $3, $4,$5, $6)
     RETURNING *;
   `;
-  const values = [googleId, email, name, picture,role,is_approved];
+  const values = [googleId, email, name, picture,role,status];
   const result = await pool.query(query, values);
   return result.rows[0];
 };
@@ -35,14 +35,24 @@ const findByEmail = async (email) => {
 };
 const getPendingProviders = async () => {
   const result = await pool.query(
-    `SELECT * FROM users WHERE role = 'provider' AND is_approved = 'false'`
+    `SELECT * FROM users WHERE role = 'provider' AND status = 'pending'`
   );
   return result.rows;
 };
 export const approveProvider = async (userId) => {
   const query = `
     UPDATE users
-    SET is_approved = true
+    SET status = 'approved'
+    WHERE id = $1 AND role = 'provider'
+    RETURNING *;
+  `;
+  const result = await pool.query(query, [userId]);
+  return result.rows[0];
+};
+export const rejectProvider = async (userId) => {
+  const query = `
+    UPDATE users
+    SET status = 'rejected'
     WHERE id = $1 AND role = 'provider'
     RETURNING *;
   `;
@@ -57,5 +67,6 @@ export default {
   findById,
   findByEmail,
   getPendingProviders,
-  approveProvider
+  approveProvider,
+  rejectProvider
 };

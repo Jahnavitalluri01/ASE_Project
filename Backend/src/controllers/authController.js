@@ -15,10 +15,10 @@ const authController = {
 
       if (!user) {
         // console.log("User not found:", user);
-        const is_approved = role === 'provider' ? false : true;
-        user = await User.create({ googleId, email, name, picture, role, is_approved });
+        const status = role === 'provider' ? 'pending': 'not_applicable';
+        user = await User.default.create({ googleId, email, name, picture, role, status });
       }
-
+         console.log(user)
       res.status(200).json({
         message: 'Login successful',
         user: {
@@ -28,7 +28,7 @@ const authController = {
           name: user.name,
           picture: user.picture,
           role: user.role,
-          is_approved: user.is_approved,
+          status: user.status,
         },
       });
     } catch (error) {
@@ -91,13 +91,33 @@ console.log("Fetching user details with ID:", id, "and Email:", email);
       name: user.name,
       picture: user.picture,
       role: user.role,
-      is_approved: user.is_approved,
+      status: user.status,
     });
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 },
+// For Admin: Reject a Provider
+rejectProvider: async (req, res) => {
+  console.log("Rejecting provider");
+  const { userId } = req.params;
+  console.log("Rejecting provider with ID:", userId);
+
+  try {
+    const rejectedUser = await User.default.rejectProvider(userId);
+
+    if (!rejectedUser) {
+      return res.status(404).json({ message: 'Provider not found or already rejected' });
+    }
+
+    res.status(200).json({ message: 'Provider rejected', user: rejectedUser });
+  } catch (error) {
+    console.error('Error rejecting provider:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+},
+
 
 };
 

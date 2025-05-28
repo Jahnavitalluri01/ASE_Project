@@ -31,6 +31,17 @@ const AdminProvidersRequest = () => {
       console.error('Error approving provider:', err);
     }
   };
+  // Reject a provider
+const rejectProvider = async (userId) => {
+  try {
+    console.log("Rejecting provider with ID:", userId);
+    await axios.put(`http://localhost:5000/api/auth/provider/reject/${userId}`);
+    setPendingProviders(prev => prev.filter(p => p.id !== userId));
+  } catch (err) {
+    console.error('Error rejecting provider:', err);
+  }
+};
+
 
   return (
     <div className="container mt-5">
@@ -61,8 +72,14 @@ const AdminProvidersRequest = () => {
                     className="btn btn-success btn-sm"
                     onClick={() => approveProvider(provider.id)}
                   >
-                    Approve
+                    Approve Request
                   </button>
+                  <button
+          className="btn btn-danger btn-sm ms-4"
+          onClick={() => rejectProvider(provider.id)}
+        >
+          Reject Request
+        </button>
                 </td>
               </tr>
             ))}
