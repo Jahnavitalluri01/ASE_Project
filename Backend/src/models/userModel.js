@@ -10,16 +10,28 @@ const findByGoogleId = async (googleId) => {
   return result.rows[0];
 };
 
-const create = async ({ googleId, email, name, picture,role,status }) => {
+// src/models/userModel.js
+const create = async ({ googleId, email, name, picture, role, status,
+                       locations, snowRate,lawnRate, services, experience }) => {
   const query = `
-    INSERT INTO users (google_id, email, name, picture,role,status)
-    VALUES ($1, $2, $3, $4,$5, $6)
+    INSERT INTO users (
+      google_id, email, name, picture, role, status,
+      locations, snowrate, lawnrate, services, experience
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11)
     RETURNING *;
   `;
-  const values = [googleId, email, name, picture,role,status];
+  const values = [
+    googleId, email, name, picture, role, status,
+    locations ? locations.join(",") : null,
+    snowRate|| null,lawnRate || null,
+    services ? services.join(",") : null,
+    experience || null
+  ];
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
 const findById = async (id) => {
   const query = `SELECT * FROM users WHERE id = $1;`;
   const values = [id];
@@ -39,6 +51,7 @@ const getPendingProviders = async () => {
   );
   return result.rows;
 };
+
 export const approveProvider = async (userId) => {
   const query = `
     UPDATE users
@@ -59,6 +72,32 @@ export const rejectProvider = async (userId) => {
   const result = await pool.query(query, [userId]);
   return result.rows[0];
 };
+export const findProviders = async ({ serviceType, location, minRating }) => {
+  if (!serviceType) throw new Error("Service type is required");
+
+  let query = `
+    SELECT id, name, services, locations, snowrate, lawnrate, rating
+    FROM users
+    WHERE role = 'provider'
+      AND status = 'approved'
+      AND $1 = ANY (string_to_array(services, ','))
+  `;
+
+  const params = [serviceType];
+
+  if (location) {
+    query += ` AND $${params.length + 1} = ANY (string_to_array(locations, ','))`;
+    params.push(location);
+  }
+
+  if (minRating !== undefined && minRating !== null) {
+    query += ` AND rating >= $${params.length + 1}`;
+    params.push(Number(minRating));
+  }
+
+  const result = await pool.query(query, params);
+  return result.rows;
+};
 
 
 export default {
@@ -68,5 +107,6 @@ export default {
   findByEmail,
   getPendingProviders,
   approveProvider,
-  rejectProvider
+  rejectProvider,
+  findProviders
 };

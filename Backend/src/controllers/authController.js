@@ -3,40 +3,56 @@ import * as User from '../models/userModel.js';
 const authController = {
   // Google Login Handler
   googleLogin: async (req, res) => {
-    const { googleId, email, name, picture, role } = req.body;
+  const {
+    googleId, email, name, picture, role,
+    locations,snowRate, lawnRate , services, experience
+  } = req.body;
+console.log("Google Login Request:", req.body);
+  if (!googleId || !email || !name || !picture || !role) {
+    return res.status(400).json({ message: 'Missing required user information' });
+  }
 
-    if (!googleId || !email || !name || !picture || !role) {
-      return res.status(400).json({ message: 'Missing required user information' });
-    }
-    console.log("role"+ role);
+  try {
+    let user = await User.default.findByGoogleId(googleId);
 
-    try {
-      let user = await User.default.findByGoogleId(googleId);
-
-      if (!user) {
-        // console.log("User not found:", user);
-        const status = role === 'provider' ? 'pending': 'not_applicable';
-        user = await User.default.create({ googleId, email, name, picture, role, status });
-      }
-         console.log(user)
-      res.status(200).json({
-        message: 'Login successful',
-        user: {
-          id: user.id,
-          googleId: user.google_id,
-          email: user.email,
-          name: user.name,
-          picture: user.picture,
-          role: user.role,
-          status: user.status,
-        },
+    if (!user) {
+      const status = role === 'provider' ? 'pending' : 'not_applicable';
+      user = await User.default.create({
+        googleId, email, name, picture, role, status,
+        locations, snowRate, lawnRate, services, experience
       });
-    } catch (error) {
-      console.error('Error during Google login:', error);
-      res.status(500).json({ message: 'Internal server error' });
     }
-  },
 
+    // If user exists and is a provider, you might also want to
+    // update their details on every login:
+    else if (role === 'provider') {
+      user = await User.default.updateProviderDetails(
+        googleId, locations, snowRate,lawnRate, services, experience
+      );
+    }
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        googleId: user.google_id,
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        role: user.role,
+        status: user.status,
+        locations: user.locations,
+        snowRate: user.snowRate,
+        lawnRate: user.lawnRate,
+        services: user.services,
+        experience: user.experience
+      },
+    });
+  } catch (error) {
+    console.error('Error during Google login:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+},
   // For Admin: Get All Pending Providers
   getallPendingProviders: async (req, res) => {
     console.log(User)
@@ -117,6 +133,25 @@ rejectProvider: async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 },
+// src/controllers/providerController.js
+searchProviders :async (req, res) => {
+  try {
+    const { serviceType, location, minRating } = req.query;
+
+    if (!serviceType) {
+      return res.status(400).json({ message: "Service type is required" });
+    }
+   console.log("Searching providers with parameters:", {
+      serviceType, location, minRating
+    });
+    const providers = await User.default.findProviders({ serviceType, location, minRating });
+    res.json(providers);
+
+  } catch (error) {
+    console.error('Error searching providers:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+}
 
 
 };
