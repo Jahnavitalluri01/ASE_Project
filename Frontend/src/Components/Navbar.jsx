@@ -38,7 +38,8 @@ function Navbar() {
                     </li>
                     <li className="nav-item dropdown ps-4 mt-2">
                       <img
-                        src={user.picture || "https://via.placeholder.com/30"}
+                        src={user.picture}
+                        onError={(e) => { e.target.src = "https://via.placeholder.com/30"; }}
                         alt="Admin"
                         className="rounded-circle me-2"
                         style={{ width: "30px", height: "30px", objectFit: "cover", cursor: "pointer" }}
@@ -65,7 +66,7 @@ function Navbar() {
                       <Link to="/customer/dashboard" className="nav-link darkcolor m-0">My Bookings</Link>
                     </li>
                     <li className="nav-item ps-4">
-                      <Link to="/services" className="nav-link darkcolor m-0">Services</Link>
+                      <Link to="/makebooking" className="nav-link darkcolor m-0">Make a Booking</Link>
                     </li>
                     <li className="nav-item dropdown ps-4 mt-2">
                       <img
