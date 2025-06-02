@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import BookingForm from "./BookingForm"; // make sure path is correct
 
 const locationOptions = [
   "New York",
@@ -11,18 +12,14 @@ const locationOptions = [
 ];
 
 export default function MakeBookings() {
-  const [serviceType, setServiceType] = useState(""); // "Lawn Mow" or "Snow Mow"
+  const [serviceType, setServiceType] = useState("");
   const [location, setLocation] = useState("");
   const [minRating, setMinRating] = useState("");
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState(null);
 
   useEffect(() => {
-    console.log("Fetching providers with parameters:", {
-      serviceType,
-      location,
-      minRating,
-    });
     if (!serviceType) {
       setProviders([]);
       return;
@@ -36,7 +33,7 @@ export default function MakeBookings() {
           ...(location && { location }),
           ...(minRating && { minRating }),
         };
-    
+
         const { data } = await axios.get(
           "http://localhost:5000/api/auth/providers/search",
           { params }
@@ -112,24 +109,39 @@ export default function MakeBookings() {
             <div className="row">
               {providers.map((p) => (
                 <div key={p.id} className="col-md-6 mb-3">
-                  <div className="card p-3">
-                    <h5>Provider Name:{p.name}</h5>
-                    <p>Services: {p.services}</p>
-                    <p>Locations: {p.locations}</p>
-                    <p>Rating: {parseFloat(p.average_rating).toFixed(1)} ({p.review_count} reviews)</p>
-                    <p>
-                      Rate: $
-                      {serviceType === "Snow Mow"
-                        ? p.snowrate
-                        : p.lawnrate}{" "}
-                      per {serviceType === "Snow Mow" ? "hour" : "sq ft"}
-                    </p>
-                  </div>
-                </div>
+  <div className="card p-3 position-relative" style={{ minHeight: "220px" }}>
+    <h5>Provider Name: {p.name}</h5>
+    <p>Services: {p.services}</p>
+    <p>Locations: {p.locations}</p>
+    <p>
+      Rating: {parseFloat(p.average_rating).toFixed(1)} ({p.review_count} reviews)
+    </p>
+    <p>
+      Rate: $
+      {serviceType === "Snow Mow" ? p.snowrate : p.lawnrate} per{" "}
+      {serviceType === "Snow Mow" ? "hour" : "sq ft"}
+    </p>
+    <button
+      className="btn btn-success position-absolute bottom-0 end-0 m-3 py-2"
+      onClick={() => setSelectedProvider(p)}
+    >
+      Make a Booking
+    </button>
+  </div>
+</div>
+
               ))}
             </div>
           )}
         </>
+      )}
+
+      {selectedProvider && (
+        <BookingForm
+          provider={selectedProvider}
+          serviceType={serviceType}
+          onClose={() => setSelectedProvider(null)}
+        />
       )}
     </div>
   );

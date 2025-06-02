@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import pool from './db/index.js';
 import authRoutes from './routes/authRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ pool.query('SELECT NOW()')
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Start the server
 app.listen(PORT, () => {

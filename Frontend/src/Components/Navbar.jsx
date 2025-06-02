@@ -58,7 +58,7 @@ function Navbar() {
                     </li>
                   </>
                 )}
-{console.log("User:"+user.name+" "+user.role+" "+user.status+" "+user.picture+" "+user.email)}
+{console.log("User:"+user.name+" "+user.role+" "+user.status+" "+user.picture+" "+user.email+user.id)}
                 {/* ===== Customer View ===== */}
                 {user.role === "customer" && (
                   <>
