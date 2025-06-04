@@ -13,12 +13,17 @@ export default function Login() {
 
   // toggle showing the provider detail form
   const [isProvider, setIsProvider] = useState(false);
+  const [mobileError, setMobileError] = useState("");
+  const [errors, setErrors] = useState({});
+
+
   const [providerDetails, setProviderDetails] = useState({
   locations: [],
   services: [],
   snowRate: "",
   lawnRate: "",
   experience: "",
+  mobilenumber: "",
 });
 
 
@@ -30,8 +35,51 @@ export default function Login() {
     { value: "Seattle", label: "Seattle" },
     { value: "Los Angeles", label: "Los Angeles" },
   ];
+const validateMobileNumber = (number) => {
+  const regex = /^\+?[0-9]{7,15}$/; // Allows optional + and 7-15 digits
+  return regex.test(number);
+};
+const validateProviderDetails = () => {
+  const newErrors = {};
+
+  if (providerDetails.locations.length === 0) {
+    newErrors.locations = "Please select at least one location.";
+  }
+  if (providerDetails.services.length === 0) {
+    newErrors.services = "Please select at least one service.";
+  }
+  if (providerDetails.services.includes("Snow Mow") && !providerDetails.snowRate) {
+    newErrors.snowRate = "Please enter Snow Mow rate.";
+  }
+  if (providerDetails.services.includes("Lawn Mow") && !providerDetails.lawnRate) {
+    newErrors.lawnRate = "Please enter Lawn Mow rate.";
+  }
+  if (!providerDetails.experience) {
+    newErrors.experience = "Please select experience.";
+  }
+  if (!providerDetails.mobilenumber) {
+    newErrors.mobilenumber = "Please enter mobile number.";
+  } else if (!validateMobileNumber(providerDetails.mobilenumber)) {
+    newErrors.mobilenumber = "Please enter a valid mobile number (7-15 digits, optional +).";
+  }
+
+  setErrors(newErrors);
+  // Return true if no errors
+  return Object.keys(newErrors).length === 0;
+};
+
 
   const handleGoogle = async (credentialResponse) => {
+    if (isProvider && !validateMobileNumber(providerDetails.mobilenumber)) {
+  alert("Please enter a valid mobile number before submitting.");
+  return;
+}
+if (isProvider && !validateProviderDetails()) {
+    alert("Please fix the errors in the form before submitting.");
+    return;
+  }
+
+
     if (!credentialResponse.credential) return;
     const decoded = jwtDecode(credentialResponse.credential);
     const role = isProvider ? "provider" : "customer";
@@ -102,6 +150,7 @@ export default function Login() {
                 providerDetails.locations.includes(o.value)
               )}
             />
+            {errors.locations && <div style={{ color: "red", marginBottom: "10px" }}>{errors.locations}</div>}
 
             <label>Services Offered</label>
             <div className="form-check">
@@ -121,6 +170,7 @@ export default function Login() {
                   }));
                 }}
               />
+              
               <label className="form-check-label" htmlFor="snow">
                 Snow Mow
               </label>
@@ -146,6 +196,7 @@ export default function Login() {
                 Lawn Mow
               </label>
             </div>
+            {errors.services && <div style={{ color: "red", marginBottom: "10px" }}>{errors.services}</div>}
 
             {/* Snow Mow Rate */}
 {providerDetails.services.includes("Snow Mow") && (
@@ -163,7 +214,9 @@ export default function Login() {
         }))
       }
     />
+    {errors.snowRate && <div style={{ color: "red", marginBottom: "10px" }}>{errors.snowRate}</div>}
   </div>
+  
 )}
 
 {/* Lawn Mow Rate */}
@@ -182,6 +235,7 @@ export default function Login() {
         }))
       }
     />
+    {errors.lawnRate && <div style={{ color: "red", marginBottom: "10px" }}>{errors.lawnRate}</div>}
   </div>
 )}
 
@@ -204,7 +258,32 @@ export default function Login() {
               <option value="4">4 years</option>
               <option value="5+">5+ years</option>
             </select>
+            {errors.experience && <div style={{ color: "red", marginBottom: "10px" }}>{errors.experience}</div>}
+<div className="mb-3">
+  <label>Contact Info (Mobile Number)</label>
+ <input
+  type="text"
+  className="form-input"
+  placeholder="e.g., +1234567890"
+  value={providerDetails.mobilenumber || ""}
+  onChange={(e) => {
+    const val = e.target.value;
+    setProviderDetails((prev) => ({
+      ...prev,
+      mobilenumber: val,
+    }));
+    if (!validateMobileNumber(val)) {
+      setMobileError("Please enter a valid phone number (7-15 digits, optional +).");
+    } else {
+      setMobileError("");
+    }
+  }}
+/>
+{errors.mobilenumber && <div style={{ color: "red", marginBottom: "10px" }}>{errors.mobilenumber}</div>}
+{mobileError && <div style={{ color: "red", marginTop: "5px" }}>{mobileError}</div>}
 
+
+</div>
            
           </div>
         )}

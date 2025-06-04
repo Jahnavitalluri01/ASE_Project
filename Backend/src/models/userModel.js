@@ -12,21 +12,22 @@ const findByGoogleId = async (googleId) => {
 
 // src/models/userModel.js
 const create = async ({ googleId, email, name, picture, role, status,
-                       locations, snowRate,lawnRate, services, experience }) => {
+                       locations, snowRate,lawnRate, services, experience,mobilenumber }) => {
   const query = `
     INSERT INTO users (
       google_id, email, name, picture, role, status,
-      locations, snowrate, lawnrate, services, experience
+      locations, snowrate, lawnrate, services, experience, mobilenumber
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,$11,$12)
     RETURNING *;
   `;
+  console.log("mobile number",mobilenumber)
   const values = [
     googleId, email, name, picture, role, status,
     locations ? locations.join(",") : null,
     snowRate|| null,lawnRate || null,
     services ? services.join(",") : null,
-    experience || null
+    experience || null,mobilenumber || null
   ];
   const result = await pool.query(query, values);
   return result.rows[0];
