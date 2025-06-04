@@ -5,7 +5,7 @@ const authController = {
   googleLogin: async (req, res) => {
   const {
     googleId, email, name, picture, role,
-    locations,snowRate, lawnRate , services, experience
+    locations,snowRate, lawnRate , services, experience,mobilenumber
   } = req.body;
 console.log("Google Login Request:", req.body);
   if (!googleId || !email || !name || !picture || !role) {
@@ -19,17 +19,17 @@ console.log("Google Login Request:", req.body);
       const status = role === 'provider' ? 'pending' : 'not_applicable';
       user = await User.default.create({
         googleId, email, name, picture, role, status,
-        locations, snowRate, lawnRate, services, experience
+        locations, snowRate, lawnRate, services, experience,mobilenumber
       });
     }
 
     // If user exists and is a provider, you might also want to
     // update their details on every login:
-    else if (role === 'provider') {
-      user = await User.default.updateProviderDetails(
-        googleId, locations, snowRate,lawnRate, services, experience
-      );
-    }
+    // else if (role === 'provider') {
+    //   user = await User.default.updateProviderDetails(
+    //     googleId, locations, snowRate,lawnRate, services, experience,mobilenumber
+    //   );
+    // }
 
     res.status(200).json({
       message: 'Login successful',
@@ -45,7 +45,8 @@ console.log("Google Login Request:", req.body);
         snowRate: user.snowRate,
         lawnRate: user.lawnRate,
         services: user.services,
-        experience: user.experience
+        experience: user.experience,
+        mobilenumber: user.mobilenumber
       },
     });
   } catch (error) {
