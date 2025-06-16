@@ -37,4 +37,5 @@ pool.on('error', (err) => {
   console.error('❌ Database connection error:', err);
 });
 
+
 export default pool;
