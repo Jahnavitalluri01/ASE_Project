@@ -53,6 +53,25 @@ const getPendingProviders = async () => {
   return result.rows;
 };
 
+const getallProviders = async () => {
+  const result = await pool.query(
+    `SELECT * FROM users WHERE role = 'provider' AND status = 'approved'`
+  );
+  return result.rows;
+};
+ 
+/* Admin to view number of users */
+export const getAllUsers = async () => {
+  const result = await pool.query("SELECT * FROM users WHERE role = 'customer'");
+  return result.rows;
+};
+
+/* Admin views for number of approved providers */
+export const getApprovedProviders = async () => {
+  const result = await pool.query("SELECT * FROM users WHERE role = 'provider' AND status = 'approved'");
+  return result.rows;
+};
+
 export const approveProvider = async (userId) => {
   const query = `
     UPDATE users
@@ -73,6 +92,7 @@ export const rejectProvider = async (userId) => {
   const result = await pool.query(query, [userId]);
   return result.rows[0];
 };
+
 export const findProviders = async ({ serviceType, location, minRating }) => {
   if (!serviceType) throw new Error("Service type is required");
 
@@ -109,5 +129,9 @@ export default {
   getPendingProviders,
   approveProvider,
   rejectProvider,
-  findProviders
+  findProviders,
+  getallProviders,
+  getApprovedProviders,
+  getAllUsers
+
 };

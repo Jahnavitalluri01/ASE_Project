@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import BookingForm from "./BookingForm"; // make sure path is correct
+import BookingForm from "./BookingForm";
+import "./style.css";
 
-const locationOptions = [
-  "New York",
-  "Chicago",
-  "Boston",
-  "Denver",
-  "Seattle",
-  "Los Angeles",
-];
+const locationOptions = ["Overland Park", "Kansas City", "Lee's Summit"];
 
 export default function MakeBookings() {
   const [serviceType, setServiceType] = useState("");
@@ -35,7 +29,7 @@ export default function MakeBookings() {
         };
 
         const { data } = await axios.get(
-          "http://localhost:5000/api/auth/providers/search",
+          "http://localhost:5002/api/auth/providers/search",
           { params }
         );
         setProviders(data);
@@ -50,98 +44,61 @@ export default function MakeBookings() {
   }, [serviceType, location, minRating]);
 
   return (
-    <div className="container my-4">
-      <h2>Select Service Type</h2>
-      <div className="mb-3">
-        <select
-          className="form-select"
-          value={serviceType}
-          onChange={(e) => setServiceType(e.target.value)}
-        >
-          <option value="">-- Select Service --</option>
-          <option value="Snow Mow">Snow Removal</option>
-          <option value="Lawn Mow">Lawn Mowing</option>
-        </select>
+    <div className="make-bookings-wrapper">
+      <h1 className="section-title">Book Your Service</h1>
+
+      <div className="filter-card">
+        <div className="filter-group">
+          <label>Service</label>
+          <select className="form-control" value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
+            <option value="">Select Service</option>
+            <option value="Snow Removal">Snow Removal</option>
+            <option value="Lawn Mowing">Lawn Mowing</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label>Location</label>
+          <select className="form-control" value={location} onChange={(e) => setLocation(e.target.value)}>
+            <option value="">All Locations</option>
+            {locationOptions.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label>Min Rating</label>
+          <select className="form-control" value={minRating} onChange={(e) => setMinRating(e.target.value)}>
+            <option value="">Any</option>
+            {[5, 4, 3, 2, 1].map((r) => (
+              <option key={r} value={r}>{r}+</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {serviceType && (
-        <>
-          <div className="mb-3">
-            <label>Location (optional)</label>
-            <select
-              className="form-select"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-            >
-              <option value="">All locations</option>
-              {locationOptions.map((loc) => (
-                <option key={loc} value={loc}>
-                  {loc}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-3">
-            <label>Minimum Rating (optional)</label>
-            <select
-              className="form-select"
-              value={minRating}
-              onChange={(e) => setMinRating(e.target.value)}
-            >
-              <option value="">Any rating</option>
-              {[5, 4, 3, 2, 1].map((r) => (
-                <option key={r} value={r}>
-                  {r} & up
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <hr />
-
-          <h3>Providers</h3>
-          {loading ? (
-            <p>Loading...</p>
-          ) : providers.length === 0 ? (
-            <p>No providers found.</p>
-          ) : (
-            <div className="row">
-              {providers.map((p) => (
-                <div key={p.id} className="col-md-6 mb-3">
-  <div className="card p-3 position-relative" style={{ minHeight: "220px" }}>
-    <h5>Provider Name: {p.name}</h5>
-    <p>Services: {p.services}</p>
-    <p>Locations: {p.locations}</p>
-    <p>
-      Rating: {parseFloat(p.average_rating).toFixed(1)} ({p.review_count} reviews)
-    </p>
-    <p>
-      Rate: $
-      {serviceType === "Snow Mow" ? p.snowrate : p.lawnrate} per{" "}
-      {serviceType === "Snow Mow" ? "hour" : "sq ft"}
-    </p>
-    <button
-      className="btn btn-success position-absolute bottom-0 end-0 m-3 py-2"
-      onClick={() => setSelectedProvider(p)}
-    >
-      Make a Booking
-    </button>
-  </div>
-</div>
-
-              ))}
+      {loading ? (
+        <div className="loader">Loading providers...</div>
+      ) : providers.length === 0 ? (
+        <div className="no-results">No providers found. Try adjusting your filters..</div>
+      ) : (
+        <div className="providers-grid">
+          {providers.map((p) => (
+            <div key={p.id} className="provider-card">
+              <h3>{p.name}</h3>
+              <p><strong>Services:</strong> {p.services}</p>
+              <p><strong>Location:</strong> {p.locations}</p>
+              <p><strong>Rating:</strong> {parseFloat(p.average_rating).toFixed(1)}</p>
+              <p><strong>Rate:</strong> ${serviceType === "Snow Removal" ? p.snowrate : p.lawnrate} {serviceType === "Snow Removal" ? "/hr" : "/sq.ft"}</p>
+              <button className="primary-btn" onClick={() => setSelectedProvider(p)}>Book Now</button>
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
 
       {selectedProvider && (
-        <BookingForm
-          provider={selectedProvider}
-          serviceType={serviceType}
-          onClose={() => setSelectedProvider(null)}
-        />
+        <BookingForm provider={selectedProvider} serviceType={serviceType} onClose={() => setSelectedProvider(null)} />
       )}
     </div>
   );

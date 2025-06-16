@@ -3,101 +3,182 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import "./style.css";
 
-export default function BookingForm({ provider, serviceType, onClose }) {
-     const { user } = useAuth();
+export default function BookingForm({
+  provider,
+  serviceType,
+  onClose,
+  isEditMode = false,
+  existingBooking = null,
+}) {
+  const { user } = useAuth();
   const [date, setDate] = useState(null);
-  const [unavailableDates, setUnavailableDates] = useState([]);
   const [location, setLocation] = useState("");
   const [sqft, setSqft] = useState("");
   const [hours, setHours] = useState("");
   const [specialRequest, setSpecialRequest] = useState("");
   const [totalCost, setTotalCost] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [providerData, setProviderData] = useState(provider);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const selectedService = serviceType || existingBooking?.service_type;
+  
+
+  useEffect(() => {
+    if (isEditMode && existingBooking) {
+      setDate(new Date(existingBooking.date));
+      setLocation(existingBooking.location);
+      setSqft(existingBooking.sqft || "");
+      setHours(existingBooking.estimated_hours || "");
+      setSpecialRequest(existingBooking.special_request || "");
+
+      axios
+        .get(`http://localhost:5002/api/auth/provider/${existingBooking.provider_id}`)
+        .then((res) => {
+          setProviderData(res.data);
+        })
+        .catch((err) => console.error("Error fetching provider data", err));
+    } else if (provider) {
+      setProviderData(provider);
+    }
+  }, [existingBooking, provider, isEditMode]);
 
   const rate =
-    serviceType === "Snow Mow" ? provider.snowrate : provider.lawnrate;
+    selectedService === "Snow Removal"
+      ? providerData?.snowrate || 0
+      : providerData?.lawnrate || 0;
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:5000/api/bookings/unavailable-dates`, {
-        params: { providerId: provider.id },
-      })
-      .then((res) => {
-        setUnavailableDates(res.data.map((d) => new Date(d)));
-      });
-  }, [provider.id]);
-
-  useEffect(() => {
-    let base = 0;
-    if (serviceType === "Lawn Mow" && sqft && rate) {
-      base = sqft * rate;
-    } else if (serviceType === "Snow Mow" && hours && rate) {
-      base = hours * rate;
-    }
+    const sqftValue = parseFloat(sqft || 0);
+    const hoursValue = parseFloat(hours || 0);
+    const base =
+      selectedService === "Lawn Mowing"
+        ? sqftValue * rate
+        : hoursValue * rate;
 
     if (base > 0) {
-      const withAdmin = base + base * 0.05; // 5% admin fee
-      const withTax = withAdmin + withAdmin * 0.05; // 5% tax
+      const withAdmin = base + base * 0.05;
+      const withTax = withAdmin + withAdmin * 0.05;
       setTotalCost(withTax.toFixed(2));
     } else {
       setTotalCost(null);
     }
-  }, [sqft, hours, rate, serviceType]);
+  }, [sqft, hours, rate, selectedService]);
 
-  const handleSubmit = async () => {
-  const bookingDetails = {
-    customerId: user.id, // TODO: Replace with actual logged-in user ID (e.g., from context or localStorage)
-    providerId: provider.id,
-    serviceType,
-    location,
-    date: date?.toISOString(), // Convert to string for backend
-    estimatedHours: serviceType === "Snow Mow" ? Number(hours) : null,
-    sqft: serviceType === "Lawn Mow" ? Number(sqft) : null,
-    specialRequest,
-    rate, // This is calculated earlier in the component
+  const validateForm = () => {
+    const newErrors = {};
+    if (!date) newErrors.date = "Please select a date.";
+    if (!location.trim()) newErrors.location = "Location is required.";
+    if (selectedService === "Lawn Mowing" && (!sqft || sqft <= 0))
+      newErrors.sqft = "Enter valid sqft.";
+    if (selectedService === "Snow Removal" && (!hours || hours <= 0))
+      newErrors.hours = "Enter valid hours.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  try {
-    await axios.post("http://localhost:5000/api/bookings/request", bookingDetails);
-    alert("Booking requested!");
-    onClose();
-  } catch (error) {
-    console.error("Booking failed:", error?.response?.data || error.message);
-    alert("Booking failed. Check console for details.");
-  }
-};
+  const submitBooking = async () => {
+    const sqftValue = parseFloat(sqft || 0);
+    const hoursValue = parseFloat(hours || 0);
+    const rateValue = parseFloat(rate || 0);
 
+    const baseCost =
+      selectedService === "Lawn Mowing"
+        ? sqftValue * rateValue
+        : hoursValue * rateValue;
+
+    const adminCommission = baseCost * 0.05;
+    const tax = (baseCost + adminCommission) * 0.05;
+    const totalCostCalculated = baseCost + adminCommission + tax;
+
+    const bookingDetails = {
+      customerId: user.id,
+      providerId: providerData?.id || existingBooking?.provider_id,
+      serviceType: selectedService,
+      location,
+      date: date?.toISOString(),
+      estimatedHours: selectedService === "Snow Removal" ? hoursValue : null,
+      sqft: selectedService === "Lawn Mowing" ? sqftValue : null,
+      specialRequest,
+      rate: rateValue,
+      adminCommission,
+      tax,
+      totalCost: totalCostCalculated,
+    };
+
+    try {
+      if (isEditMode && existingBooking?.id) {
+        await axios.put(
+          `http://localhost:5002/api/bookings/update/${existingBooking.id}`,
+          bookingDetails
+        );
+        alert("Booking updated successfully!");
+      } else {
+        await axios.post("http://localhost:5002/api/bookings/request", bookingDetails);
+        alert("Booking requested successfully!");
+      }
+      onClose();
+    } catch (err) {
+      console.error("Error submitting:", err);
+      alert("Submission failed.");
+    }
+  };
+
+  const handleSubmit = () => {
+    if (!providerData?.id && !existingBooking?.provider_id) {
+      alert("Provider data is missing. Please try again.");
+      return;
+    }
+    if (!validateForm()) return;
+    if (isEditMode) {
+      setShowConfirmModal(true);
+    } else {
+      submitBooking();
+    }
+  };
 
   return (
-    <div className="modal show d-block" tabIndex="-1">
-      <div className="modal-dialog">
-        <div className="modal-content p-3">
-          <h5>Request Booking with {provider.name}</h5>
-          <p><strong>Service Type:</strong> {serviceType}</p>
+    <div className="booking-overlay">
+      <div className="booking-container">
+        <div className="booking-left">
+          <h2>{isEditMode ? "Edit Booking" : "Booking with"}</h2>
+          <h3>{providerData?.name}</h3>
+          <p>
+            <strong>Service:</strong> {selectedService}
+          </p>
+          <p>
+            <strong>Rate:</strong> ${rate}{" "}
+            {selectedService === "Snow Removal" ? "/hr" : "/sq ft"}
+          </p>
+        </div>
 
-          <div className="mb-2">
-            <label>Choose Date</label>
+        <div className="booking-right">
+          <h3>Enter Booking Details</h3>
+
+          <div className="form-group">
+            <label>Select Date</label>
             <DatePicker
               selected={date}
               onChange={(d) => setDate(d)}
-              excludeDates={unavailableDates}
               minDate={new Date()}
               className="form-control"
-              placeholderText="Select a booking date"
             />
+            {errors.date && <div className="error-text">{errors.date}</div>}
           </div>
 
-          <div className="mb-2">
-            <label>Your Location</label>
+          <div className="form-group">
+            <label>Location</label>
             <input
               className="form-control"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
+            {errors.location && <div className="error-text">{errors.location}</div>}
           </div>
 
-          {serviceType === "Lawn Mow" && (
-            <div className="mb-2">
+          {selectedService === "Lawn Mowing" && (
+            <div className="form-group">
               <label>Square Feet</label>
               <input
                 type="number"
@@ -105,23 +186,25 @@ export default function BookingForm({ provider, serviceType, onClose }) {
                 value={sqft}
                 onChange={(e) => setSqft(e.target.value)}
               />
+              {errors.sqft && <div className="error-text">{errors.sqft}</div>}
             </div>
           )}
 
-          {serviceType === "Snow Mow" && (
-            <div className="mb-2">
-              <label>Estimated Time (in hours)</label>
+          {selectedService === "Snow Removal" && (
+            <div className="form-group">
+              <label>Estimated Hours</label>
               <input
                 type="number"
                 className="form-control"
                 value={hours}
                 onChange={(e) => setHours(e.target.value)}
               />
+              {errors.hours && <div className="error-text">{errors.hours}</div>}
             </div>
           )}
 
-          <div className="mb-2">
-            <label>Special Request</label>
+          <div className="form-group">
+            <label>Special Request (Optional)</label>
             <textarea
               className="form-control"
               value={specialRequest}
@@ -130,19 +213,47 @@ export default function BookingForm({ provider, serviceType, onClose }) {
           </div>
 
           {totalCost && (
-            <p><strong>Total Cost: ${totalCost}</strong></p>
+            <div className="total-summary">
+              Total Cost: <strong>${totalCost}</strong>
+            </div>
           )}
 
-          <div className="d-flex justify-content-end mt-3">
-            <button className="btn btn-primary me-2" onClick={handleSubmit}>
-              Request Booking
+          <div className="button-group">
+            <button className="confirm-btn" onClick={handleSubmit}>
+              {isEditMode ? "Update Booking" : "Confirm Booking"}
             </button>
-            <button className="btn btn-secondary" onClick={onClose}>
+            <button className="cancel-btn" onClick={onClose}>
               Cancel
             </button>
           </div>
         </div>
       </div>
+
+      {showConfirmModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Confirm Update</h3>
+            <p>Are you sure you want to update this booking?</p>
+            <div className="button-group">
+              <button
+                className="confirm-btn"
+                onClick={() => {
+                  submitBooking();
+                  setShowConfirmModal(false);
+                }}
+              >
+                Yes, Update
+              </button>
+              <button
+                className="cancel-btn"
+                onClick={() => setShowConfirmModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

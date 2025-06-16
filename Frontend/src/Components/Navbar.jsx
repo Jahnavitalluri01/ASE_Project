@@ -1,9 +1,11 @@
 import React from 'react';
-import "./style.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from "./AuthContext";
+import { Navbar, Nav, Container, Dropdown, Image } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './style.css';
 
-function Navbar() {
+function AppNavbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -13,137 +15,118 @@ function Navbar() {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg p-0">
-      <div className="container-fluid pt-3" style={{ backgroundColor: "#c4dfe6" }}>
-        <div className="collapse navbar-collapse">
-          <div className="navbar-brand ps-4 mb-3 ms-5">
-            <p className="m-0 logoo">SnowMow Solutions<i className="bi bi-snow ms-2"></i></p>
-          </div>
+    <Navbar bg="light" expand="lg" className="shadow-sm py-3">
+      <Container>
+        <Navbar.Brand className="logoo fs-4">
+          SnowMow Solutions <i className="bi bi-snow ms-2"></i>
+        </Navbar.Brand>
 
-          <ul className="navbar-nav ms-auto mb-3">
-            <li className="nav-item ps-4">
-              <Link to="/" className="nav-link darkcolor m-0" style={{ textDecoration: 'none' }}>
-                Home
-              </Link>
-            </li>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
 
-            {/* ========== LOGGED IN ========== */}
-            {user && (
-              <>
-                {/* ===== Admin View ===== */}
-                {user.role === "admin" && (
-                  <>
-                    <li className="nav-item ps-4">
-                      <Link to="/providersrequest" className="nav-link darkcolor m-0">Provider Requests</Link>
-                    </li>
-                    <li className="nav-item dropdown ps-4 mt-2">
-                      <img
-                        src={user.picture}
-                        onError={(e) => { e.target.src = "https://via.placeholder.com/30"; }}
-                        alt="Admin"
-                        className="rounded-circle me-2"
-                        style={{ width: "30px", height: "30px", objectFit: "cover", cursor: "pointer" }}
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      />
-                      <ul className="dropdown-menu dropdown-menu-end">
-                        <li><p className='dropdown-item'>{user.name || "Admin"}</p></li>
-                        <li>
-                          <button className="dropdown-item" onClick={handleLogout}>
-                            Logout
-                          </button>
-                        </li>
-                      </ul>
-                    </li>
-                  </>
-                )}
-{console.log("User:"+user.name+" "+user.role+" "+user.status+" "+user.picture+" "+user.email+user.id)}
-                {/* ===== Customer View ===== */}
-                {user.role === "customer" && (
-                  <>
-                    <li className="nav-item ps-4">
-                      <Link to="/customer/dashboard" className="nav-link darkcolor m-0">My Bookings</Link>
-                    </li>
-                    <li className="nav-item ps-4">
-                      <Link to="/makebooking" className="nav-link darkcolor m-0">Make a Booking</Link>
-                    </li>
-                    <li className="nav-item dropdown ps-4 mt-2">
-                      <img
-                        src={user.picture || "https://via.placeholder.com/30"}
-                        alt="User"
-                        className="rounded-circle me-2"
-                        style={{ width: "30px", height: "30px", objectFit: "cover", cursor: "pointer" }}
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      />
-                      <ul className="dropdown-menu dropdown-menu-end">
-                        <li><p className='dropdown-item'>{user.name}</p></li>
-                        <li>
-                          <button className="dropdown-item" onClick={handleLogout}>
-                            Logout
-                          </button>
-                        </li>
-                      </ul>
-                    </li>
-                  </>
-                )}
+          <Nav className="ms-auto">
 
-                {/* ===== Provider View ===== */}
-                {user.role === "provider" && user.status=="approved" ? (
-                  <>
-                    <li className="nav-item ps-4">
-                      <Link to="/provider/dashboard" className="nav-link darkcolor m-0">Provider Dashboard</Link>
-                    </li>
-                    <li className="nav-item dropdown ps-4 mt-2">
-                      <img
-                        src={user.picture || "https://via.placeholder.com/30"}
-                        alt="Provider"
-                        className="rounded-circle me-2"
-                        style={{ width: "30px", height: "30px", objectFit: "cover", cursor: "pointer" }}
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                      />
-                      <ul className="dropdown-menu dropdown-menu-end">
-                        <li><p className='dropdown-item'>{user.name || "Provider"}</p></li>
-                        <li>
-                          <button className="dropdown-item" onClick={handleLogout}>
-                            Logout
-                          </button>
-                        </li>
-                      </ul>
-                    </li>
-                  </>
-                ) : user.role === "provider" && user.status=="pending" || user.status=="rejected" ? (
-                  <>
-                    <li className="nav-item ps-4">
-                      <Link to="/" className="nav-link darkcolor m-0" onClick={handleLogout}>
-                        Return Home
-                      </Link>
-                    </li>
-                  </>
-                ) : null}
-              </>
-            )}
+            <Nav.Link as={Link} to="/" className="mx-3">Home</Nav.Link>
 
-            {/* ========== NOT LOGGED IN ========== */}
+            {/* NOT LOGGED IN */}
             {!user && (
               <>
-                <li className="nav-item ps-4">
-                  <Link to="/servicesouterview" className="nav-link darkcolor m-0">Our Services</Link>
-                </li>
-                <li className="nav-item ps-4">
-                  <Link to="/login" className="nav-link darkcolor m-0">Login</Link>
-                </li>
+                <Nav.Link as={Link} to="/servicesouterview" className="mx-3">Our Services</Nav.Link>
+                <Nav.Link as={Link} to="/login" className="mx-3">Login</Nav.Link>
               </>
             )}
-          </ul>
-        </div>
-      </div>
-    </nav>
+
+            {/* ADMIN */}
+              {user?.role === "admin" && (
+                <>
+                  <Nav.Link as={Link} to="/admin-dashboard" className="mx-3">
+                    Dashboard
+                  </Nav.Link>
+                  <Nav.Link as={Link} to="/allproviders" className="mx-3">
+                    Providers
+                  </Nav.Link>
+                  <Nav.Link as={Link} to="/providersrequest" className="mx-3">
+                    Provider Requests
+                  </Nav.Link>
+
+                  {/* Admin Profile Dropdown */}
+                  <Dropdown align="end" className="mx-3">
+                    <Dropdown.Toggle variant="light" className="d-flex align-items-center">
+                      <Image
+                        src={user.picture || "https://via.placeholder.com/30"}
+                        roundedCircle
+                        width="30"
+                        height="30"
+                        className="me-2"
+                      />
+                      <span>{user.name}</span>
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.ItemText>
+                        <strong>{user.name}</strong>
+                        <br />
+                        <small>{user.email}</small>
+                      </Dropdown.ItemText>
+                      <Dropdown.Divider />
+                      <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </>
+              )}
+
+
+            {/* CUSTOMER */}
+            {user?.role === "customer" && (
+                              <>
+                <Nav.Link as={Link} to="/customer/mybookings" className="mx-3">My Bookings</Nav.Link>
+                <Nav.Link as={Link} to="/makebooking" className="mx-3">Make a Booking</Nav.Link>
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="light" className="d-flex align-items-center">
+                    <Image src={user.picture} roundedCircle width="30" height="30" className="me-2" />
+                    {user.name}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.ItemText>{user.email}</Dropdown.ItemText>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </>
+            )}
+
+            {/* PROVIDER */}
+            {user?.role === "provider" && user?.status === "approved" && (
+              <>
+                <Nav.Link as={Link} to="/providerdashboard" className="mx-3">Provider Dashboard</Nav.Link>
+                <Nav.Link as={Link} to="/providerbookingrequests" className="mx-3">Booking Requests</Nav.Link>
+                <Dropdown align="end">
+                  <Dropdown.Toggle variant="light" className="d-flex align-items-center">
+                    <Image src={user.picture} roundedCircle width="30" height="30" className="me-2" />
+                    {user.name}
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.ItemText>{user.email}</Dropdown.ItemText>
+                    <Dropdown.Divider />
+                    <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </>
+            )}
+
+            {/* PROVIDER with Pending or Rejected */}
+            {user?.role === "provider" && (user?.status === "pending" || user?.status === "rejected") && (
+              <>
+                <Nav.Link onClick={handleLogout} className="mx-3">
+                  Return Home
+                </Nav.Link>
+              </>
+            )}
+
+          </Nav>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
   );
 }
 
-export default Navbar;
+export default AppNavbar;

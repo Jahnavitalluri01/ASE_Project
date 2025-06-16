@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -11,100 +12,95 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // toggle showing the provider detail form
   const [isProvider, setIsProvider] = useState(false);
-  const [mobileError, setMobileError] = useState("");
-  const [errors, setErrors] = useState({});
-
+  const [formValid, setFormValid] = useState(false);
 
   const [providerDetails, setProviderDetails] = useState({
-  locations: [],
-  services: [],
-  snowRate: "",
-  lawnRate: "",
-  experience: "",
-  mobilenumber: "",
-});
-
+    locations: [],
+    services: [],
+    snowRate: "",
+    lawnRate: "",
+    experience: "",
+    mobilenumber: "",
+    ssn: "",
+    about: "",
+  });
 
   const locationOptions = [
-    { value: "New York", label: "New York" },
-    { value: "Chicago", label: "Chicago" },
-    { value: "Boston", label: "Boston" },
-    { value: "Denver", label: "Denver" },
-    { value: "Seattle", label: "Seattle" },
-    { value: "Los Angeles", label: "Los Angeles" },
+    { value: "Overland Park", label: "Overland Park" },
+    { value: "Kansas City", label: "Kansas City" },
+    { value: "Lee's Summit", label: "Lee's Summit" },
   ];
-const validateMobileNumber = (number) => {
-  const regex = /^\+?[0-9]{7,15}$/; // Allows optional + and 7-15 digits
-  return regex.test(number);
-};
-const validateProviderDetails = () => {
-  const newErrors = {};
 
-  if (providerDetails.locations.length === 0) {
-    newErrors.locations = "Please select at least one location.";
-  }
-  if (providerDetails.services.length === 0) {
-    newErrors.services = "Please select at least one service.";
-  }
-  if (providerDetails.services.includes("Snow Mow") && !providerDetails.snowRate) {
-    newErrors.snowRate = "Please enter Snow Mow rate.";
-  }
-  if (providerDetails.services.includes("Lawn Mow") && !providerDetails.lawnRate) {
-    newErrors.lawnRate = "Please enter Lawn Mow rate.";
-  }
-  if (!providerDetails.experience) {
-    newErrors.experience = "Please select experience.";
-  }
-  if (!providerDetails.mobilenumber) {
-    newErrors.mobilenumber = "Please enter mobile number.";
-  } else if (!validateMobileNumber(providerDetails.mobilenumber)) {
-    newErrors.mobilenumber = "Please enter a valid mobile number (7-15 digits, optional +).";
-  }
+  const validateMobileNumber = (number) =>
+    /^\+?[0-9]{7,15}$/.test(number.trim());
 
-  setErrors(newErrors);
-  // Return true if no errors
-  return Object.keys(newErrors).length === 0;
-};
+  // Simple SSN validation (basic check for 9 digits, can be customized)
+  const validateSSN = (ssn) => /^\d{9}$/.test(ssn.trim());
 
+  // Validate if all fields are filled and mobile is valid
+  const validateProviderDetails = () => {
+    const {
+      locations,
+      services,
+      snowRate,
+      lawnRate,
+      experience,
+      mobilenumber,
+      ssn,
+      about,
+    } = providerDetails;
+
+    if (
+      locations.length === 0 ||
+      services.length === 0 ||
+      (services.includes("Snow Removal") && !snowRate) ||
+      (services.includes("Lawn Mowing") && !lawnRate) ||
+      !experience ||
+      !mobilenumber.trim() ||
+      !validateMobileNumber(mobilenumber) ||
+      !ssn.trim() ||
+      !validateSSN(ssn) ||
+      !about.trim()
+    ) {
+      setFormValid(false);
+      return false;
+    }
+
+    setFormValid(true);
+    return true;
+  };
 
   const handleGoogle = async (credentialResponse) => {
-    if (isProvider && !validateMobileNumber(providerDetails.mobilenumber)) {
-  alert("Please enter a valid mobile number before submitting.");
-  return;
-}
-if (isProvider && !validateProviderDetails()) {
-    alert("Please fix the errors in the form before submitting.");
-    return;
-  }
-
+    if (isProvider && !validateProviderDetails()) {
+      alert("Please fill all details correctly before submitting.");
+      return;
+    }
 
     if (!credentialResponse.credential) return;
+
     const decoded = jwtDecode(credentialResponse.credential);
     const role = isProvider ? "provider" : "customer";
 
-    // build the body
     const body = {
       googleId: decoded.sub,
       email: decoded.email,
       name: decoded.name,
       picture: decoded.picture,
       role,
+      status: isProvider ? "pending" : "approved",
       ...(role === "provider" ? providerDetails : {}),
     };
 
     try {
-      // call your backend
-      await axios.post("http://localhost:5000/api/auth/google", body);
-      const { data: user } = await axios.get("http://localhost:5000/api/auth/user", {
-        params: { email: decoded.email },
-      });
+      const { data } = await axios.post(
+        "http://localhost:5002/api/auth/google",
+        body
+      );
+      const user = data.user;
 
-      // set into context
       login(user);
 
-      // redirect depending on role/status
       if (user.role === "provider") {
         if (user.status === "approved") navigate("/");
         else if (user.status === "pending") navigate("/providerwaiting");
@@ -114,198 +110,250 @@ if (isProvider && !validateProviderDetails()) {
       }
     } catch (err) {
       console.error("Auth Error:", err);
-      alert("Authentication failed. Please try again.");
+      alert("Authentication failed.");
     }
   };
 
-  return (
-    <div className="login-container d-flex justify-content-center align-items-center py-5" style={{ minHeight: "100vh" }}>
-      <div className="login-box">
-        <h2 className="login-title">Login</h2>
-
-        {/* Provider details form */}
-        {isProvider && (
-          <div className="provider-form">
-            <h5 className="form-heading">Service Provider Details</h5>
- <div><button
-              className="btn btn-light my-3"
-              onClick={() => setIsProvider(false)}
-            >
-              &larr; Back to Login
-            </button>
-            </div>
-            <label>Locations</label>
-            <Select
-              isMulti
-              options={locationOptions}
-              placeholder="Select locations…"
-              className="mb-3"
-              onChange={(selected) =>
-                setProviderDetails((d) => ({
-                  ...d,
-                  locations: selected ? selected.map((o) => o.value) : [],
-                }))
-              }
-              value={locationOptions.filter((o) =>
-                providerDetails.locations.includes(o.value)
-              )}
-            />
-            {errors.locations && <div style={{ color: "red", marginBottom: "10px" }}>{errors.locations}</div>}
-
-            <label>Services Offered</label>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value="Snow Mow"
-                id="snow"
-                checked={providerDetails.services.includes("Snow Mow")}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setProviderDetails((p) => ({
-                    ...p,
-                    services: e.target.checked
-                      ? [...p.services, val]
-                      : p.services.filter((s) => s !== val),
-                  }));
-                }}
-              />
-              
-              <label className="form-check-label" htmlFor="snow">
-                Snow Mow
-              </label>
-            </div>
-            <div className="form-check mb-3">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                value="Lawn Mow"
-                id="lawn"
-                checked={providerDetails.services.includes("Lawn Mow")}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setProviderDetails((p) => ({
-                    ...p,
-                    services: e.target.checked
-                      ? [...p.services, val]
-                      : p.services.filter((s) => s !== val),
-                  }));
-                }}
-              />
-              <label className="form-check-label" htmlFor="lawn">
-                Lawn Mow
-              </label>
-            </div>
-            {errors.services && <div style={{ color: "red", marginBottom: "10px" }}>{errors.services}</div>}
-
-            {/* Snow Mow Rate */}
-{providerDetails.services.includes("Snow Mow") && (
-  <div className="mb-3">
-    <label>Snow Mow Rate ($/hour)</label>
-    <input
-      type="number"
-      className="form-input"
-      placeholder="e.g., 40"
-      value={providerDetails.snowRate || ""}
-      onChange={(e) =>
-        setProviderDetails((prev) => ({
-          ...prev,
-          snowRate: e.target.value,
-        }))
-      }
-    />
-    {errors.snowRate && <div style={{ color: "red", marginBottom: "10px" }}>{errors.snowRate}</div>}
-  </div>
-  
-)}
-
-{/* Lawn Mow Rate */}
-{providerDetails.services.includes("Lawn Mow") && (
-  <div className="mb-3">
-    <label>Lawn Mow Rate ($/sq.ft)</label>
-    <input
-      type="number"
-      className="form-input"
-      placeholder="e.g., 0.15"
-      value={providerDetails.lawnRate || ""}
-      onChange={(e) =>
-        setProviderDetails((prev) => ({
-          ...prev,
-          lawnRate: e.target.value,
-        }))
-      }
-    />
-    {errors.lawnRate && <div style={{ color: "red", marginBottom: "10px" }}>{errors.lawnRate}</div>}
-  </div>
-)}
-
-
-            <label>Experience</label>
-            <select
-              className="form-select mb-3"
-              value={providerDetails.experience}
-              onChange={(e) =>
-                setProviderDetails({
-                  ...providerDetails,
-                  experience: e.target.value,
-                })
-              }
-            >
-              <option value="">Select experience</option>
-              <option value="1">1 year</option>
-              <option value="2">2 years</option>
-              <option value="3">3 years</option>
-              <option value="4">4 years</option>
-              <option value="5+">5+ years</option>
-            </select>
-            {errors.experience && <div style={{ color: "red", marginBottom: "10px" }}>{errors.experience}</div>}
-<div className="mb-3">
-  <label>Contact Info (Mobile Number)</label>
- <input
-  type="text"
-  className="form-input"
-  placeholder="e.g., +1234567890"
-  value={providerDetails.mobilenumber || ""}
-  onChange={(e) => {
-    const val = e.target.value;
-    setProviderDetails((prev) => ({
-      ...prev,
-      mobilenumber: val,
-    }));
-    if (!validateMobileNumber(val)) {
-      setMobileError("Please enter a valid phone number (7-15 digits, optional +).");
+  // Run validation whenever provider details change or role changes
+  useEffect(() => {
+    if (isProvider) {
+      validateProviderDetails();
     } else {
-      setMobileError("");
+      setFormValid(true); // customer login always enabled
     }
-  }}
-/>
-{errors.mobilenumber && <div style={{ color: "red", marginBottom: "10px" }}>{errors.mobilenumber}</div>}
-{mobileError && <div style={{ color: "red", marginTop: "5px" }}>{mobileError}</div>}
+  }, [providerDetails, isProvider]);
 
+  const onInputChange = (field, value) => {
+    setProviderDetails((prev) => ({ ...prev, [field]: value }));
+  };
 
-</div>
-           
-          </div>
-        )}
+  return (
+    <div className="login-page-container">
+      <div className="login-card">
+        <h2 className="brand-title mb-3">SnowMow Solutions</h2>
+        <p className="brand-subtitle mb-4">Simplifying outdoor maintenance</p>
 
-        {/* Single GoogleLogin button */}
-        <div className="google-login-wrapper">
-  <GoogleLogin
-    onSuccess={handleGoogle}
-    onError={() => alert("Login Failed")}
-    theme="filled_blue"  // makes it blue
-    size="large"
-    width="100%"
-  />
-</div>
+        {!isProvider ? (
+          <>
+            <div className="google-login-wrapper mb-3">
+              <GoogleLogin
+                onSuccess={handleGoogle}
+                onError={() => alert("Login Failed")}
+                theme="filled_blue"
+                size="large"
+                width="100%"
+              />
+            </div>
+            <p className="provider-toggle">
+              Want to become a service provider?{" "}
+              <span
+                onClick={() => {
+                  setIsProvider(true);
+                  setProviderDetails({
+                    locations: [],
+                    services: [],
+                    snowRate: "",
+                    lawnRate: "",
+                    experience: "",
+                    mobilenumber: "",
+                    ssn: "",
+                    about: "",
+                  });
+                  setFormValid(false);
+                }}
+                style={{
+                  cursor: "pointer",
+                  color: "#007bff",
+                  textDecoration: "underline",
+                }}
+              >
+                Click here
+              </span>
+            </p>
+          </>
+        ) : (
+          <>
+            {/* Provider form */}
+            <div className="provider-form mt-3">
+              <label>Locations</label>
+              <Select
+                isMulti
+                options={locationOptions}
+                className="mb-3"
+                onChange={(selected) => {
+                  onInputChange(
+                    "locations",
+                    selected ? selected.map((o) => o.value) : []
+                  );
+                }}
+                value={locationOptions.filter((o) =>
+                  providerDetails.locations.includes(o.value)
+                )}
+              />
 
+              <label>Services Offered</label>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  value="Snow Removal"
+                  checked={providerDetails.services.includes("Snow Removal")}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    let newServices = [];
+                    if (e.target.checked)
+                      newServices = [...providerDetails.services, val];
+                    else
+                      newServices = providerDetails.services.filter(
+                        (s) => s !== val
+                      );
+                    onInputChange("services", newServices);
+                  }}
+                />
+                <label className="form-check-label">Snow Removal</label>
+              </div>
 
-        {/* Toggle link */}
-        {!isProvider && (
-          <p className="toggle-provider" onClick={() => setIsProvider(true)}>
-            Want to become a service provider?{" "}
-            <span style={{textDecoration:"none"}}>Request</span>
-          </p>
+              <div className="form-check mb-3">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  value="Lawn Mowing"
+                  checked={providerDetails.services.includes("Lawn Mowing")}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    let newServices = [];
+                    if (e.target.checked)
+                      newServices = [...providerDetails.services, val];
+                    else
+                      newServices = providerDetails.services.filter(
+                        (s) => s !== val
+                      );
+                    onInputChange("services", newServices);
+                  }}
+                />
+                <label className="form-check-label">Lawn Mowing</label>
+              </div>
+
+              {providerDetails.services.includes("Snow Removal") && (
+                <div className="mb-3">
+                  <label>Snow Removal Rate ($/hr)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={providerDetails.snowRate}
+                    onChange={(e) => onInputChange("snowRate", e.target.value)}
+                  />
+                </div>
+              )}
+
+              {providerDetails.services.includes("Lawn Mowing") && (
+                <div className="mb-3">
+                  <label>Lawn Mowing Rate ($/sq.ft)</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={providerDetails.lawnRate}
+                    onChange={(e) => onInputChange("lawnRate", e.target.value)}
+                  />
+                </div>
+              )}
+
+              <label>Experience</label>
+              <select
+                className="form-select mb-3"
+                value={providerDetails.experience}
+                onChange={(e) => onInputChange("experience", e.target.value)}
+              >
+                <option value="">Select experience</option>
+                <option value="1">1 year</option>
+                <option value="2">2 years</option>
+                <option value="3">3 years</option>
+                <option value="4">4 years</option>
+                <option value="5+">5+ years</option>
+              </select>
+
+              {/* Mobile Number at the bottom */}
+              <div className="mb-3">
+                <label>Mobile Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={providerDetails.mobilenumber}
+                  onChange={(e) => onInputChange("mobilenumber", e.target.value)}
+                />
+              </div>
+
+              {/* New SSN Number */}
+              <div className="mb-3">
+                <label>SSN Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={providerDetails.ssn}
+                  onChange={(e) => onInputChange("ssn", e.target.value)}
+                  placeholder="9 digit SSN"
+                />
+              </div>
+
+              {/* New About Me / Description */}
+              <div className="mb-3">
+                <label>Tell Us About Your Work</label>
+                <textarea
+                  className="form-input"
+                  rows={4}
+                  value={providerDetails.about}
+                  onChange={(e) => onInputChange("about", e.target.value)}
+                  placeholder="Share details about your expertise and services offered"
+                />
+              </div>
+            </div>
+
+            {/* Google Login button disabled until formValid */}
+            <div
+              style={{
+                pointerEvents: formValid ? "auto" : "none",
+                opacity: formValid ? 1 : 0.6,
+                transition: "opacity 0.3s ease",
+                width: "100%",
+              }}
+            >
+              <GoogleLogin
+                onSuccess={handleGoogle}
+                onError={() => alert("Login Failed")}
+                theme="filled_blue"
+                size="large"
+                width="100%"
+                useOneTap={false}
+              />
+            </div>
+
+            {/* Back to customer login */}
+            <div className="text-center mt-3">
+              <small
+                onClick={() => {
+                  setIsProvider(false);
+                  setProviderDetails({
+                    locations: [],
+                    services: [],
+                    snowRate: "",
+                    lawnRate: "",
+                    experience: "",
+                    mobilenumber: "",
+                    ssn: "",
+                    about: "",
+                  });
+                  setFormValid(true);
+                }}
+                style={{
+                  cursor: "pointer",
+                  color: "#007bff",
+                  textDecoration: "underline",
+                }}
+              >
+                Back to customer login
+              </small>
+            </div>
+          </>
         )}
       </div>
     </div>

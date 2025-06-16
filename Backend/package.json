@@ -15,7 +15,8 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^8.5.1",
     "pg": "^8.16.0",
-    "pg-connection-string": "^2.9.0"
+    "pg-connection-string": "^2.9.0",
+    "stripe": "^18.2.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.12"
