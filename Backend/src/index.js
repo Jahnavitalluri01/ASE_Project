@@ -26,15 +26,15 @@ pool.query('SELECT NOW()')
   .then(res => console.log('Database time:', res.rows[0]))
   .catch(err => console.error('Database connection error:', err));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-// Serve React static files
-app.use(express.static(path.join(__dirname, '../client/dist')));
+// Serve React static files from the correct folder
+app.use(express.static(path.join(__dirname, '../client')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  res.sendFile(path.join(__dirname, '../client/index.html'));
 });
 
 // Start the server
