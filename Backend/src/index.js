@@ -25,6 +25,14 @@ pool.query('SELECT NOW()')
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://0.0.0.0:${PORT}`);
