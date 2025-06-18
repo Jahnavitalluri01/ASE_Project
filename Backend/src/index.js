@@ -1,4 +1,3 @@
-// filepath: Backend/src/index.js
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -8,6 +7,12 @@ import cors from 'cors';
 import pool from './db/index.js';
 import authRoutes from './routes/authRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = 5002;
@@ -25,13 +30,12 @@ pool.query('SELECT NOW()')
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-const path = require('path');
+// Serve React static files
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
-
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
