@@ -15,7 +15,7 @@ const ProviderDashboard = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await axios.get(`/api/bookings/provider/${user.id}`);
+        const res = await axios.get(`https://snowmow.online/api/bookings/provider/${user.id}`);
         setBookings(res.data || []);
       } catch (err) {
         console.error('Failed to fetch bookings', err);
@@ -35,12 +35,12 @@ const ProviderDashboard = () => {
   };
 
   const startService = async (id) => {
-    await axios.patch(`/api/bookings/start/${id}`);
+    await axios.patch(`https://snowmow.online/api/bookings/start/${id}`);
     window.location.reload();
   };
 
   const completeService = async (id) => {
-    await axios.patch(`/api/bookings/complete/${id}`);
+    await axios.patch(`https://snowmow.online/api/bookings/complete/${id}`);
     window.location.reload();
   };
 

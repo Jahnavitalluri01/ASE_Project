@@ -94,7 +94,7 @@ export default function Login() {
 
     try {
       const { data } = await axios.post(
-        "/api/auth/google",
+        "https://snowmow.online/api/auth/google",
         body
       );
       const user = data.user;

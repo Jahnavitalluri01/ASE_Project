@@ -10,7 +10,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await axios.get("/api/auth/admin/dashboard-metrics");
+        const res = await axios.get("https://snowmow.online/api/auth/admin/dashboard-metrics");
         setStats({
           users: res.data.totalUsers || 0,
           providers: res.data.totalProviders || 0,

@@ -29,7 +29,7 @@ export default function MakeBookings() {
         };
 
         const { data } = await axios.get(
-          "/api/auth/providers/search",
+          "https://snowmow.online/api/auth/providers/search",
           { params }
         );
         setProviders(data);

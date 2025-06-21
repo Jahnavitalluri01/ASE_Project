@@ -9,7 +9,7 @@ const PaymentSuccess = () => {
   useEffect(() => {
     const markAsPaid = async () => {
       try {
-        await axios.patch(`/api/bookings/mark-paid/${bookingId}`);
+        await axios.patch(`https://snowmow.online/api/bookings/mark-paid/${bookingId}`);
         console.log("Sending PATCH for booking:", bookingId);
         setTimeout(() => navigate('/my-bookings'), 20);
       } catch (err) {

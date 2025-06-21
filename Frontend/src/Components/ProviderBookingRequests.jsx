@@ -20,7 +20,7 @@ const ProviderBookingRequests = () => {
 
   const confirmReject = async () => {
     try {
-      await axios.patch(`/api/bookings/reject/${selectedBookingId}`, {
+      await axios.patch(`https://snowmow.online/api/bookings/reject/${selectedBookingId}`, {
         reason: rejectReason
       });
       alert("Booking rejected");
@@ -34,7 +34,7 @@ const ProviderBookingRequests = () => {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get(`/api/bookings/provider/${user.id}?status=pending`);
+      const res = await axios.get(`https://snowmow.online/api/bookings/provider/${user.id}?status=pending`);
       setBookings(res.data);
     } catch (err) {
       console.error("Error fetching bookings:", err);
@@ -46,7 +46,7 @@ const ProviderBookingRequests = () => {
 
   const updateStatus = async (bookingId, status) => {
     try {
-      await axios.put(`/api/bookings/status/${bookingId}`, { status });
+      await axios.put(`https://snowmow.online/api/bookings/status/${bookingId}`, { status });
       setBookings(prev => prev.filter(b => b.id !== bookingId));
     } catch (err) {
       console.error(`Failed to ${status} booking:`, err);

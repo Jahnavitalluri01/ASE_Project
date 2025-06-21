@@ -110,12 +110,12 @@ export default function BookingForm({
     try {
       if (isEditMode && existingBooking?.id) {
         await axios.put(
-          `/api/bookings/update/${existingBooking.id}`,
+          `https://snowmow.online/api/bookings/update/${existingBooking.id}`,
           bookingDetails
         );
         alert("Booking updated successfully!");
       } else {
-        await axios.post("/api/bookings/request", bookingDetails);
+        await axios.post("https://snowmow.online/api/bookings/request", bookingDetails);
         alert("Booking requested successfully!");
       }
       onClose();
