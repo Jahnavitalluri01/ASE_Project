@@ -94,7 +94,7 @@ export default function Login() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:5002/api/auth/google",
+        "/api/auth/google",
         body
       );
       const user = data.user;

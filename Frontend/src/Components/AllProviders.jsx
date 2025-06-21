@@ -7,7 +7,7 @@ export default function AllProviders() {
 
   const fetchProviders = async () => {
     try {
-      const res = await axios.get("http://localhost:5002/api/auth/allproviders");
+      const res = await axios.get("/api/auth/allproviders");
       setProviders(res.data);
     } catch (err) {
       console.error("Failed to fetch providers:", err);
@@ -18,7 +18,7 @@ export default function AllProviders() {
   const toggleProviderStatus = async (id) => {
     try {
       console.log("Toggling status for provider ID:", id); 
-      await axios.patch("http://localhost:5002/api/providers/${providers.id}/toggle-status");
+      await axios.patch("/api/providers/${providers.id}/toggle-status");
       fetchProviders(); // Refresh data after toggling
     } catch (err) {
       console.error("Failed to toggle provider status:", err);

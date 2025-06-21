@@ -29,7 +29,7 @@ export default function MakeBookings() {
         };
 
         const { data } = await axios.get(
-          "http://localhost:5002/api/auth/providers/search",
+          "/api/auth/providers/search",
           { params }
         );
         setProviders(data);

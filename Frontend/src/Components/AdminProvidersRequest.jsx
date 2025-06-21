@@ -8,7 +8,7 @@ const AdminProvidersRequest = () => {
   
   const fetchPendingProviders = async () => {
     try {
-      const res = await axios.get('http://localhost:5002/api/auth/providers/pending');
+      const res = await axios.get('/api/auth/providers/pending');
       setPendingProviders(res.data);
       console.log('Pending Providers:', res.data);
     } catch (err) {
@@ -24,7 +24,7 @@ const AdminProvidersRequest = () => {
 
   const approveProvider = async (userId) => {
     try {
-      await axios.put(`http://localhost:5002/api/auth/providers/approve/${userId}`);
+      await axios.put(`/api/auth/providers/approve/${userId}`);
       setPendingProviders(prev => prev.filter(p => p.id !== userId));
     } catch (err) {
       console.error('Error approving provider:', err);
@@ -33,7 +33,7 @@ const AdminProvidersRequest = () => {
 
   const rejectProvider = async (userId) => {
     try {
-      await axios.put(`http://localhost:5002/api/auth/provider/reject/${userId}`);
+      await axios.put(`/api/auth/provider/reject/${userId}`);
       setPendingProviders(prev => prev.filter(p => p.id !== userId));
     } catch (err) {
       console.error('Error rejecting provider:', err);

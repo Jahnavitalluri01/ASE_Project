@@ -15,7 +15,7 @@ export default function MyBookings() {
 
   const fetchBookings = async () => {
     try {
-      const { data } = await axios.get(`http://localhost:5002/api/bookings/customer/${user.id}`);
+      const { data } = await axios.get(`/api/bookings/customer/${user.id}`);
       setBookings(data);
     } catch (err) {
       console.error("Error fetching bookings:", err);
@@ -38,7 +38,7 @@ export default function MyBookings() {
     if (!confirmed) return;
 
     try {
-      await axios.put(`http://localhost:5002/api/bookings/cancel/${bookingId}`);
+      await axios.put(`/api/bookings/cancel/${bookingId}`);
       fetchBookings();
     } catch (err) {
       console.error("Error cancelling booking:", err);
@@ -80,7 +80,7 @@ export default function MyBookings() {
   const handlePayNow = async (booking) => {
     const stripe = await stripePromise;
 
-    const response = await axios.post('http://localhost:5002/api/bookings/create-checkout-session', {
+    const response = await axios.post('/api/bookings/create-checkout-session', {
       bookingId: booking.id,
       amount: booking.total_cost,
       email: user.email,

@@ -34,7 +34,7 @@ export default function BookingForm({
       setSpecialRequest(existingBooking.special_request || "");
 
       axios
-        .get(`http://localhost:5002/api/auth/provider/${existingBooking.provider_id}`)
+        .get(`/api/auth/provider/${existingBooking.provider_id}`)
         .then((res) => {
           setProviderData(res.data);
         })
@@ -110,12 +110,12 @@ export default function BookingForm({
     try {
       if (isEditMode && existingBooking?.id) {
         await axios.put(
-          `http://localhost:5002/api/bookings/update/${existingBooking.id}`,
+          `/api/bookings/update/${existingBooking.id}`,
           bookingDetails
         );
         alert("Booking updated successfully!");
       } else {
-        await axios.post("http://localhost:5002/api/bookings/request", bookingDetails);
+        await axios.post("/api/bookings/request", bookingDetails);
         alert("Booking requested successfully!");
       }
       onClose();
