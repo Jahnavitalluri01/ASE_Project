@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "./style.css";
+
+// QUICK FIX: Set axios base URL globally here
+axios.defaults.baseURL = "https://snowmow.online";
 
 export default function Login() {
   const { login } = useAuth();
@@ -35,10 +38,8 @@ export default function Login() {
   const validateMobileNumber = (number) =>
     /^\+?[0-9]{7,15}$/.test(number.trim());
 
-  // Simple SSN validation (basic check for 9 digits, can be customized)
   const validateSSN = (ssn) => /^\d{9}$/.test(ssn.trim());
 
-  // Validate if all fields are filled and mobile is valid
   const validateProviderDetails = () => {
     const {
       locations,
@@ -93,10 +94,8 @@ export default function Login() {
     };
 
     try {
-      const { data } = await axios.post(
-        "https://snowmow.online/api/auth/google",
-        body
-      );
+      // Changed from absolute URL to relative path (axios will prepend baseURL)
+      const { data } = await axios.post("/api/auth/google", body);
       const user = data.user;
 
       login(user);
@@ -114,7 +113,6 @@ export default function Login() {
     }
   };
 
-  // Run validation whenever provider details change or role changes
   useEffect(() => {
     if (isProvider) {
       validateProviderDetails();
@@ -272,7 +270,6 @@ export default function Login() {
                 <option value="5+">5+ years</option>
               </select>
 
-              {/* Mobile Number at the bottom */}
               <div className="mb-3">
                 <label>Mobile Number</label>
                 <input
@@ -283,7 +280,6 @@ export default function Login() {
                 />
               </div>
 
-              {/* New SSN Number */}
               <div className="mb-3">
                 <label>SSN Number</label>
                 <input
@@ -295,7 +291,6 @@ export default function Login() {
                 />
               </div>
 
-              {/* New About Me / Description */}
               <div className="mb-3">
                 <label>Tell Us About Your Work</label>
                 <textarea
@@ -308,7 +303,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Google Login button disabled until formValid */}
             <div
               style={{
                 pointerEvents: formValid ? "auto" : "none",
@@ -327,7 +321,6 @@ export default function Login() {
               />
             </div>
 
-            {/* Back to customer login */}
             <div className="text-center mt-3">
               <small
                 onClick={() => {
