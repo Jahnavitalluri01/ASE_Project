@@ -528,7 +528,7 @@ textarea.form-control {
 
 .cancel-btn {
   padding: 6px 12px;
-  background-color: #e74c3c;
+  background-color: #6993ab;
   color: white;
   border: none;
   border-radius: 5px;
@@ -538,11 +538,11 @@ textarea.form-control {
 }
 
 .cancel-btn:hover {
-  background-color: #c0392b;
+  background-color: #e06f63;
 }
 
 .edit-btn{
-  background-color: #facc15; /* Tailwind yellow-400 */
+  background-color: #6993ab; /* Tailwind yellow-400 */
   color: white;
   font-weight: 600;
   padding: 8px 16px;
@@ -554,7 +554,7 @@ textarea.form-control {
 }
 
 .edit-btn:hover {
-  background-color: #eab308; /* Tailwind yellow-500 */
+  background-color: #49a5db; /* Tailwind yellow-500 */
 }
 
 

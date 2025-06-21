@@ -205,7 +205,7 @@ const bookingController = {
   },
 
   //Payment Service 
-  createCheckoutSession : async (req, res) => {
+  createCheckoutSession: async (req, res) => {
     const { bookingId, amount, email } = req.body;
 
     try {
@@ -234,7 +234,56 @@ const bookingController = {
       console.error(err);
       res.status(500).json({ error: 'Stripe session creation failed' });
     }
+  },
+
+  markBookingPaid: async (req, res) => {
+    const { id } = req.params;
+    console.log("Marking booking as paid. ID:", id);
+
+    try {
+      const result = await pool.query(
+        `UPDATE bookings 
+       SET payment_status = true,
+           status = 'completed'
+       WHERE id = $1 
+       RETURNING *;`,
+        [id]
+      );
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+
+      res.status(200).json({ message: 'Booking marked as paid', booking: result.rows[0] });
+    } catch (error) {
+      console.error("Error updating booking as paid:", error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  rejectBooking: async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE bookings 
+       SET status = 'rejected', rejection_reason = $1
+       WHERE id = $2 RETURNING *;`,
+      [reason, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    res.status(200).json({ message: 'Booking rejected', booking: result.rows[0] });
+  } catch (error) {
+    console.error("Error rejecting booking:", error);
+    res.status(500).json({ error: 'Internal server error' });
   }
+},
+
 
 
 };

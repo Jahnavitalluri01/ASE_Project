@@ -1,5 +1,6 @@
 import pool from '../db/index.js';
 
+
 export const getDashboardMetrics = async (req, res) => {
   try {
     const usersResult = await pool.query(`SELECT COUNT(*) FROM users WHERE role = 'customer'`);
@@ -18,3 +19,4 @@ export const getDashboardMetrics = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+

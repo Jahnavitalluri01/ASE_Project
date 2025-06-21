@@ -68,9 +68,14 @@ export const getAllUsers = async () => {
 
 /* Admin views for number of approved providers */
 export const getApprovedProviders = async () => {
-  const result = await pool.query("SELECT * FROM users WHERE role = 'provider' AND status = 'approved'");
+  const result = await pool.query(`
+    SELECT id, name, email, status, is_disabled
+    FROM users
+    WHERE role = 'provider' AND status = 'approved'
+  `);
   return result.rows;
 };
+
 
 export const approveProvider = async (userId) => {
   const query = `
@@ -120,6 +125,18 @@ export const findProviders = async ({ serviceType, location, minRating }) => {
   return result.rows;
 };
 
+export const toggleProviderStatus = async (userId) => {
+  console.log("Toggling user ID:", userId);
+  const result = await pool.query(
+    `UPDATE users
+     SET is_disabled = NOT is_disabled
+     WHERE id = $1 AND role = 'provider'
+     RETURNING *;`,
+    [userId]
+  );
+  return result.rows[0];
+};
+
 
 export default {
   findByGoogleId,
@@ -132,6 +149,7 @@ export default {
   findProviders,
   getallProviders,
   getApprovedProviders,
-  getAllUsers
+  getAllUsers,
+  toggleProviderStatus
 
 };

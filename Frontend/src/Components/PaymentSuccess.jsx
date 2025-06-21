@@ -7,11 +7,16 @@ const PaymentSuccess = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const updateStatus = async () => {
-      await axios.patch(`http://localhost:5002/api/bookings/mark-paid/${bookingId}`);
-      setTimeout(() => navigate('/my-bookings'), 2000);
+    const markAsPaid = async () => {
+      try {
+        await axios.patch(`http://localhost:5002/api/bookings/mark-paid/${bookingId}`);
+        console.log("Sending PATCH for booking:", bookingId);
+        setTimeout(() => navigate('/my-bookings'), 20);
+      } catch (err) {
+        console.error("Payment update failed:", err);
+      }
     };
-    updateStatus();
+    markAsPaid();
   }, [bookingId, navigate]);
 
   return (

@@ -9,6 +9,29 @@ const ProviderBookingRequests = () => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+
+  const handleRejectClick = (id) => {
+    setSelectedBookingId(id);
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = async () => {
+    try {
+      await axios.patch(`http://localhost:5002/api/bookings/reject/${selectedBookingId}`, {
+        reason: rejectReason
+      });
+      alert("Booking rejected");
+      setShowRejectModal(false);
+      fetchBookings(); // Refresh list
+    } catch (err) {
+      console.error("Error rejecting booking:", err);
+    }
+  };
+
+
   const fetchBookings = async () => {
     try {
       const res = await axios.get(`http://localhost:5002/api/bookings/provider/${user.id}?status=pending`);
@@ -73,6 +96,7 @@ const ProviderBookingRequests = () => {
                 Reject
               </button>
             </div>
+
           </div>
         </div>
       ))}

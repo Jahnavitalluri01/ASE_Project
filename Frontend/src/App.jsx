@@ -17,6 +17,8 @@ import { useAuth } from './Components/AuthContext';
 import BookingSummary from './Components/BookingSummary';
 import ProviderBookingRequests from './Components/ProviderBookingRequests'
 import ProviderDashboard from './Components/ProviderDashboard'
+import PaymentSuccess from './Components/PaymentSuccess';
+
 
 function App() {
   const { user } = useAuth();
@@ -55,6 +57,9 @@ function App() {
 
         <Route path='/providerbookingrequests' element={<ProviderBookingRequests />} />
         <Route path='/providerdashboard' element={<ProviderDashboard />} />
+
+        <Route path="/payment-success/:bookingId" element={<PaymentSuccess />} />
+
 
       </Routes>
     </BrowserRouter>

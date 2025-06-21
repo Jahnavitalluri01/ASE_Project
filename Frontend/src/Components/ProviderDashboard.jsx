@@ -137,12 +137,24 @@ const ProviderDashboard = () => {
 
       {statusFilter === "completed" && (
         <section>
-          <h4>Completed - Pending Payment</h4>
+          <h4>Completed Bookings</h4>
           {filtered.length > 0 ? (
-            filtered.map(b => renderCard(b))
-          ) : <p className="text-muted">No completed bookings</p>}
+            filtered.map(b =>
+              renderCard(b, (
+                <span
+                  className={`badge ${b.payment_status ? 'bg-success' : 'bg-warning text-dark'
+                    } mt-2`}
+                >
+                  {b.payment_status ? '✅ Payment Received' : '⚠️ Completed – Pending Payment'}
+                </span>
+              ))
+            )
+          ) : (
+            <p className="text-muted">No completed bookings</p>
+          )}
         </section>
       )}
+
     </div>
   );
 };

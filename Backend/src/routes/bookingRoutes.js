@@ -41,15 +41,12 @@ router.patch('/complete/:id', bookingController.completeService);
 //Payment service
 router.post('/create-checkout-session', bookingController.createCheckoutSession);
 
-router.patch('/mark-paid/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query(`UPDATE bookings SET payment_status = true WHERE id = $1`, [id]);
-    res.status(200).json({ message: 'Booking marked as paid' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update payment status' });
-  }
-});
+router.patch('/mark-paid/:id', bookingController.markBookingPaid);
+
+router.patch('/reject/:id', bookingController.rejectBooking);
+
+
+
 
 
 export default router;

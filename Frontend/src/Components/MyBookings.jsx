@@ -49,9 +49,10 @@ export default function MyBookings() {
   const renderStatusTag = (status) => {
     const colorMap = {
       accepted: "#facc15",
-      Cancelled: "#f44336",
+      Cancelled: "#e06f63",
       completed: "#2196F3",
       pending: "#FF9800",
+      rejected:"#f44336",
 
     };
     return (
@@ -146,6 +147,10 @@ export default function MyBookings() {
                   <button className="edit-btn" onClick={() => setSelectedBooking(b)} >Edit</button>
                   <button className="cancel-btn" onClick={() => handleCancelBooking(b.id)}>Cancel</button>
                 </div>
+              )}
+
+              {b.status === 'completed' && b.payment_status && (
+                <span className="badge bg-success">✅ Completed - Paid</span>
               )}
 
               {b.status === 'completed' && !b.payment_status && (

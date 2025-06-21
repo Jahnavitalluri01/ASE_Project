@@ -5,17 +5,27 @@ import "./style.css"; // custom styles
 export default function AllProviders() {
   const [providers, setProviders] = useState([]);
 
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const res = await axios.get("http://localhost:5002/api/auth/allproviders");
-        setProviders(res.data);
-      } catch (err) {
-        console.error("Failed to fetch providers:", err);
-        setProviders([]);
-      }
-    };
+  const fetchProviders = async () => {
+    try {
+      const res = await axios.get("http://localhost:5002/api/auth/allproviders");
+      setProviders(res.data);
+    } catch (err) {
+      console.error("Failed to fetch providers:", err);
+      setProviders([]);
+    }
+  };
 
+  const toggleProviderStatus = async (id) => {
+    try {
+      console.log("Toggling status for provider ID:", id); 
+      await axios.patch("http://localhost:5002/api/providers/${providers.id}/toggle-status");
+      fetchProviders(); // Refresh data after toggling
+    } catch (err) {
+      console.error("Failed to toggle provider status:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchProviders();
   }, []);
 
@@ -29,7 +39,6 @@ export default function AllProviders() {
             <div className="provider-info">
               <h3 className="provider-name">{p.name}</h3>
               <p><strong>Email:</strong> {p.email}</p>
-              {/* <p><strong>Role:</strong> {p.role}</p> */}
               <p><strong>Locations:</strong> {Array.isArray(p.locations) ? p.locations.join(", ") : p.locations || "N/A"}</p>
               <p><strong>Services:</strong> {Array.isArray(p.services) ? p.services.join(", ") : p.services || "N/A"}</p>
               {p.services?.includes("Snow Removal") && (
@@ -42,6 +51,12 @@ export default function AllProviders() {
               <p><strong>Mobile:</strong> {p.mobilenumber}</p>
               <p><strong>SSN:</strong> {p.ssn}</p>
               <p><strong>About:</strong> {p.about}</p>
+
+              {/* <button
+                className={`btn btn-${p.is_disabled ? "success" : "danger"} mt-2`}
+                onClick={() => toggleProviderStatus(p._id)} >
+                {p.is_disabled ? "Enable" : "Disable"}
+              </button> */}
             </div>
           </div>
         ))}

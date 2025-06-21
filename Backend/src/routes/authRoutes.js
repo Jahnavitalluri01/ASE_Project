@@ -4,7 +4,7 @@ import authController from '../controllers/authController.js';
 import { verifyToken } from '../middleware/authMiddleware.js';
 import { verifyAdmin } from '../middleware/admin.js'; 
 import { getDashboardMetrics } from '../controllers/adminController.js';
-import { getProviderById } from '../controllers/authController.js';
+
 
 
 const router = express.Router();
@@ -19,7 +19,10 @@ router.get('/allproviders', authController.getallProviders);
 router.get("/all-users", verifyToken, verifyAdmin, authController.getAllUsers);
 router.get("/approved-providers", verifyToken, verifyAdmin, authController.getApprovedProviders);
 router.get("/admin/dashboard-metrics", getDashboardMetrics);
-router.get("/provider/:id", getProviderById);
+router.get("/provider/:id", authController.getProviderById);
+router.patch("/providers/:id/toggle-status", verifyToken, verifyAdmin,authController.toggleProviderStatus);
+
+
 
 
 export default router;
