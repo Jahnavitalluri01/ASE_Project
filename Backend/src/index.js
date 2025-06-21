@@ -19,7 +19,12 @@ const app = express();
 const PORT = 5002;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://snowmow.online', 'http://localhost:5173'],
+  credentials: true
+}));
+
+
 app.use(bodyParser.json());
 
 // Test DB connection
