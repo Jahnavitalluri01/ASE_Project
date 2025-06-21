@@ -19,10 +19,8 @@ const app = express();
 const PORT = 5002;
 
 // Middleware
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
+app.use(cors({ origin: '*', credentials: false }));
+
 
 
 app.use(bodyParser.json());
