@@ -20,7 +20,7 @@ const PORT = 5002;
 
 // Middleware
 app.use(cors({
-  origin: ['https://snowmow.online', 'http://localhost:5173'],
+  origin: '*',
   credentials: true
 }));
 
