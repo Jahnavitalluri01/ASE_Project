@@ -40,9 +40,13 @@ app.use('/api/bookings', bookingRoutes);
 // app.get('*', (req, res) => {
 //   res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 // });
-app.get('/', (req, res) => {
-  res.send('Backend is running');
+// Serve frontend (Vite build) from dist folder
+app.use(express.static(path.join(__dirname, '../../Frontend/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../Frontend/dist/index.html'));
 });
+
 
 // Start the server
 app.listen(PORT, '0.0.0.0', () => {
