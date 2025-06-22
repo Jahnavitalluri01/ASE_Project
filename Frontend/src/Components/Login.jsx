@@ -7,8 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "./style.css";
 
-// Load API base URL from .env
-// const API_URL = process.env.REACT_APP_API_URL;
+
 
 export default function Login() {
   const { login } = useAuth();
@@ -72,7 +71,7 @@ export default function Login() {
   };
 
   const handleGoogle = async (credentialResponse) => {
-    console.log(REACT_APP_API_URL)
+  
     if (isProvider && !validateProviderDetails()) {
       alert("Please fill all details correctly before submitting.");
       return;
