@@ -8,8 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "./style.css";
 
-// QUICK FIX: Set axios base URL globally here
-axios.defaults.baseURL = "https://snowmow.online";
+const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Login() {
   const { login } = useAuth();
@@ -95,7 +94,7 @@ export default function Login() {
 
     try {
       // Changed from absolute URL to relative path (axios will prepend baseURL)
-      const { data } = await axios.post("/api/auth/google", body);
+      const { data } = await axios.post(`${API_URL}/api/auth/google`, body);
       const user = data.user;
 
       login(user);
