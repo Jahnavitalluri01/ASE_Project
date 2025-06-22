@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
-
-
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import "./style.css";
 
+// Load API base URL from .env
 const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Login() {
@@ -73,6 +72,7 @@ export default function Login() {
   };
 
   const handleGoogle = async (credentialResponse) => {
+    console.log(REACT_APP_API_URL)
     if (isProvider && !validateProviderDetails()) {
       alert("Please fill all details correctly before submitting.");
       return;
@@ -94,7 +94,6 @@ export default function Login() {
     };
 
     try {
-      // Changed from absolute URL to relative path (axios will prepend baseURL)
       const { data } = await axios.post(`${API_URL}/api/auth/google`, body);
       const user = data.user;
 
@@ -117,7 +116,7 @@ export default function Login() {
     if (isProvider) {
       validateProviderDetails();
     } else {
-      setFormValid(true); // customer login always enabled
+      setFormValid(true);
     }
   }, [providerDetails, isProvider]);
 
@@ -171,7 +170,7 @@ export default function Login() {
           </>
         ) : (
           <>
-            {/* Provider form */}
+            {/* Provider registration form */}
             <div className="provider-form mt-3">
               <label>Locations</label>
               <Select
@@ -190,47 +189,28 @@ export default function Login() {
               />
 
               <label>Services Offered</label>
-              <div className="form-check">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="Snow Removal"
-                  checked={providerDetails.services.includes("Snow Removal")}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    let newServices = [];
-                    if (e.target.checked)
-                      newServices = [...providerDetails.services, val];
-                    else
-                      newServices = providerDetails.services.filter(
-                        (s) => s !== val
-                      );
-                    onInputChange("services", newServices);
-                  }}
-                />
-                <label className="form-check-label">Snow Removal</label>
-              </div>
-
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  value="Lawn Mowing"
-                  checked={providerDetails.services.includes("Lawn Mowing")}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    let newServices = [];
-                    if (e.target.checked)
-                      newServices = [...providerDetails.services, val];
-                    else
-                      newServices = providerDetails.services.filter(
-                        (s) => s !== val
-                      );
-                    onInputChange("services", newServices);
-                  }}
-                />
-                <label className="form-check-label">Lawn Mowing</label>
-              </div>
+              {["Snow Removal", "Lawn Mowing"].map((service) => (
+                <div key={service} className="form-check mb-2">
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    value={service}
+                    checked={providerDetails.services.includes(service)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      let newServices = [];
+                      if (e.target.checked)
+                        newServices = [...providerDetails.services, val];
+                      else
+                        newServices = providerDetails.services.filter(
+                          (s) => s !== val
+                        );
+                      onInputChange("services", newServices);
+                    }}
+                  />
+                  <label className="form-check-label">{service}</label>
+                </div>
+              ))}
 
               {providerDetails.services.includes("Snow Removal") && (
                 <div className="mb-3">
@@ -239,7 +219,9 @@ export default function Login() {
                     type="number"
                     className="form-input"
                     value={providerDetails.snowRate}
-                    onChange={(e) => onInputChange("snowRate", e.target.value)}
+                    onChange={(e) =>
+                      onInputChange("snowRate", e.target.value)
+                    }
                   />
                 </div>
               )}
@@ -251,7 +233,9 @@ export default function Login() {
                     type="number"
                     className="form-input"
                     value={providerDetails.lawnRate}
-                    onChange={(e) => onInputChange("lawnRate", e.target.value)}
+                    onChange={(e) =>
+                      onInputChange("lawnRate", e.target.value)
+                    }
                   />
                 </div>
               )}
@@ -260,7 +244,9 @@ export default function Login() {
               <select
                 className="form-select mb-3"
                 value={providerDetails.experience}
-                onChange={(e) => onInputChange("experience", e.target.value)}
+                onChange={(e) =>
+                  onInputChange("experience", e.target.value)
+                }
               >
                 <option value="">Select experience</option>
                 <option value="1">1 year</option>
@@ -276,7 +262,9 @@ export default function Login() {
                   type="text"
                   className="form-input"
                   value={providerDetails.mobilenumber}
-                  onChange={(e) => onInputChange("mobilenumber", e.target.value)}
+                  onChange={(e) =>
+                    onInputChange("mobilenumber", e.target.value)
+                  }
                 />
               </div>
 
