@@ -8,7 +8,7 @@ import Select from "react-select";
 import "./style.css";
 
 // Load API base URL from .env
-const API_URL = process.env.REACT_APP_API_URL;
+// const API_URL = process.env.REACT_APP_API_URL;
 
 export default function Login() {
   const { login } = useAuth();
@@ -94,7 +94,7 @@ export default function Login() {
     };
 
     try {
-      const { data } = await axios.post(`${API_URL}/api/auth/google`, body);
+      const { data } = await axios.post("https://snowmow.online/api/auth/google", body);
       const user = data.user;
 
       login(user);
@@ -128,7 +128,7 @@ export default function Login() {
     <div className="login-page-container">
       <div className="login-card">
         <h2 className="brand-title mb-3">SnowMow Solutionssss</h2>
-        <p className="brand-subtitle mb-4">Simplifying outdoor maintenance {API_URL} with ease</p>
+        <p className="brand-subtitle mb-4">Simplifying outdoor maintenance with ease</p>
 
         {!isProvider ? (
           <>
