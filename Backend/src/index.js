@@ -48,7 +48,14 @@ app.get('*', (req, res) => {
 });
 
 
-// Start the server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on http://0.0.0.0:${PORT}`);
+import https from 'https';
+import fs from 'fs';
+
+const sslOptions = {
+  key: fs.readFileSync('/etc/letsencrypt/live/snowmow.online/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/snowmow.online/fullchain.pem'),
+};
+
+https.createServer(sslOptions, app).listen(443, () => {
+  console.log('✅ HTTPS server running at https://snowmow.online');
 });
