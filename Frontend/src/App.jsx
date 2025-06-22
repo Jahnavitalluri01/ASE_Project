@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Components/Login';
 import Services from './Components/Services';
 import Servicesouterview from './Components/Servicesouterview';
-import WaitingForAdminApproval from './Components/WaitingforAdminapproval';
+import WaitingForAdminApproval from './Components/WaitingforAdminApproval';
 import AdminProvidersRequest from './Components/AdminProvidersRequest';
 import ProviderRequestRejected from './Components/ProviderRequestRejected';
 import MakeBookings from './Components/MakeBookings';
