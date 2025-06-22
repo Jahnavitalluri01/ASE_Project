@@ -127,7 +127,7 @@ export default function Login() {
   return (
     <div className="login-page-container">
       <div className="login-card">
-        <h2 className="brand-title mb-3">SnowMow Solutions</h2>
+        <h2 className="brand-title mb-3">SnowMow Solutionssss</h2>
         <p className="brand-subtitle mb-4">Simplifying outdoor maintenance {API_URL} with ease</p>
 
         {!isProvider ? (
