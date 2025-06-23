@@ -225,8 +225,8 @@ const bookingController = {
           },
         ],
         mode: 'payment',
-        success_url: `http://localhost:5173/payment-success/${bookingId}`,
-        cancel_url: `http://localhost:5173/my-bookings`,
+        success_url: `https://snowmow.online/payment-success/${bookingId}`,
+        cancel_url: `https://snowmow.online/my-bookings`,
       });
 
       res.json({ id: session.id });
