@@ -1,116 +1,105 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useAuth } from "./AuthContext";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
+import './style.css'; // custom styling
 
 const ProviderBookingRequests = () => {
-  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth();
+
+  const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
   const [selectedBookingId, setSelectedBookingId] = useState(null);
 
+  const handleRejectClick = (id) => {
+    setSelectedBookingId(id);
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = async () => {
+    try {
+      await axios.patch(`https://snowmow.online/api/bookings/reject/${selectedBookingId}`, {
+        reason: rejectReason
+      });
+      alert("Booking rejected");
+      setShowRejectModal(false);
+      fetchBookings(); // Refresh list
+    } catch (err) {
+      console.error("Error rejecting booking:", err);
+    }
+  };
+
+
+  const fetchBookings = async () => {
+    try {
+      const res = await axios.get(`https://snowmow.online/api/bookings/provider/${user.id}?status=pending`);
+      setBookings(res.data);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setError("Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (bookingId, status) => {
+    try {
+      await axios.put(`https://snowmow.online/api/bookings/status/${bookingId}`, { status });
+      setBookings(prev => prev.filter(b => b.id !== bookingId));
+    } catch (err) {
+      console.error(`Failed to ${status} booking:`, err);
+      alert(`Error: Unable to ${status} booking`);
+    }
+  };
+
   useEffect(() => {
-    fetchBookingRequests();
+    fetchBookings();
   }, []);
 
-  const fetchBookingRequests = async () => {
-    try {
-      const res = await axios.get(`https://snowmow.online/api/bookings/provider/${user.id}`);
-      setBookings(res.data || []);
-    } catch (err) {
-      console.error("Error fetching booking requests", err);
-    }
-  };
-
-  const handleAccept = async (id) => {
-    try {
-      await axios.put(`https://snowmow.online/api/bookings/accept/${id}`);
-      fetchBookingRequests();
-    } catch (err) {
-      console.error("Accept error", err);
-    }
-  };
-
-  const openRejectModal = (id) => {
-    setSelectedBookingId(id);
-    setRejectReason("");
-    setShowModal(true);
-  };
-
-const { token } = useAuth();
-
-const confirmReject = async () => {
-  try {
-    await axios.patch(
-      `https://snowmow.online/api/bookings/provider/reject/${selectedBookingId}`,
-      { reason: rejectReason },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    setShowModal(false);
-    fetchBookingRequests();
-  } catch (err) {
-    console.error("Rejection failed", err);
-  }
-};
-
+  if (loading) return <div className="text-muted p-4">Loading booking requests...</div>;
+  if (error) return <div className="text-danger p-4">{error}</div>;
+  if (bookings.length === 0) return <div className="text-secondary p-4">No pending booking requests.</div>;
 
   return (
-    <div className="container mt-5">
+    <div className="container my-4">
       <h2 className="mb-4">Booking Requests</h2>
-      {bookings.length === 0 ? (
-        <p>No requests found.</p>
-      ) : (
-        bookings
-          .filter((booking) => booking.status === "pending")
-          .map((booking) => (
-            <div key={booking.id} className="card p-3 mb-3 shadow-sm">
-              <h5>Customer: {booking.customer_name}</h5>
-              <p>Service: {booking.service_type}</p>
-              <p>Date: {booking.date}</p>
-              <p>Time: {booking.time}</p>
-              <p>Location: {booking.location}</p>
-              <div>
-                <button className="btn btn-success me-2" onClick={() => handleAccept(booking.id)}>
-                  Accept
-                </button>
-                <button className="btn btn-danger" onClick={() => openRejectModal(booking.id)}>
-                  Reject
-                </button>
-              </div>
-            </div>
-          ))
-      )}
+      {bookings.map((booking) => (
+        <div key={booking.id} className="card shadow-sm mb-3 p-4">
+          <div className="card-body">
+            <h5 className="card-title">
+              Customer: <span className="text-dark">{booking.customer_name}</span>
+            </h5>
+            <p className="card-text mb-1"><strong>Service:</strong> {booking.service_type}</p>
+            <p className="card-text mb-1"><strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}</p>
+            <p className="card-text mb-1"><strong>Location:</strong> {booking.location}</p>
+            <p className="card-text mb-1"><strong>Estimated Hours:</strong> {booking.estimated_hours}</p>
+            <p className="card-text mb-1"><strong>Sq. Ft:</strong> {booking.sqft}</p>
+            <p className="card-text mb-3"><strong>Special Request:</strong> {booking.special_request || 'None'}</p>
 
-      {/* Rejection Modal */}
-      {showModal && (
-        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div className="modal-dialog">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Reject Booking</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
-              </div>
-              <div className="modal-body">
-                <textarea
-                  className="form-control"
-                  placeholder="Enter rejection reason"
-                  rows="4"
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                />
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button className="btn btn-danger" onClick={confirmReject}>Confirm Reject</button>
-              </div>
+            {/* <p className="card-text mb-1"><strong>Rate:</strong> {formatCurrency(booking.rate)}</p>
+            <p className="card-text mb-1"><strong>Commission:</strong> {formatCurrency(booking.admin_commission)}</p>
+            <p className="card-text mb-1"><strong>Tax:</strong> {formatCurrency(booking.tax)}</p>
+            <p className="card-text mb-1"><strong>Total Cost:</strong> {formatCurrency(booking.total_cost)}</p>  */}
+            <div className="d-flex gap-2">
+              <button
+                className="btn btn-success me-4"
+                onClick={() => updateStatus(booking.id, 'accepted')}
+              >
+                Accept
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => updateStatus(booking.id, 'rejected')}
+              >
+                Reject
+              </button>
             </div>
+
           </div>
         </div>
-      )}
+      ))}
     </div>
   );
 };
