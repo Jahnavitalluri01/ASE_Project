@@ -67,7 +67,7 @@ export default function MakeBookings() {
           </select>
         </div>
 
-        <div className="filter-group">
+        {/* <div className="filter-group">
           <label>Min Rating</label>
           <select className="form-control" value={minRating} onChange={(e) => setMinRating(e.target.value)}>
             <option value="">Any</option>
@@ -75,7 +75,7 @@ export default function MakeBookings() {
               <option key={r} value={r}>{r}+</option>
             ))}
           </select>
-        </div>
+        </div> */}
       </div>
 
       {loading ? (
@@ -89,7 +89,7 @@ export default function MakeBookings() {
               <h3>{p.name}</h3>
               <p><strong>Services:</strong> {p.services}</p>
               <p><strong>Location:</strong> {p.locations}</p>
-              <p><strong>Rating:</strong> {parseFloat(p.average_rating).toFixed(1)}</p>
+              {/* <p><strong>Rating:</strong> {parseFloat(p.average_rating).toFixed(1)}</p> */}
               <p><strong>Rate:</strong> ${serviceType === "Snow Removal" ? p.snowrate : p.lawnrate} {serviceType === "Snow Removal" ? "/hr" : "/sq.ft"}</p>
               <button className="primary-btn" onClick={() => setSelectedProvider(p)}>Book Now</button>
             </div>
