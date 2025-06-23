@@ -44,6 +44,7 @@ router.post('/create-checkout-session', bookingController.createCheckoutSession)
 router.patch('/mark-paid/:id', bookingController.markBookingPaid);
 
 router.patch('/reject/:id', bookingController.rejectBooking);
+router.patch("/provider/reject/:id", bookingController.rejectBooking);
 
 
 

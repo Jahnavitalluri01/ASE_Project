@@ -283,6 +283,21 @@ const bookingController = {
     res.status(500).json({ error: 'Internal server error' });
   }
 },
+rejectBooking : async (req, res) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    await pool.query(
+      "UPDATE bookings SET status = $1, rejection_reason = $2 WHERE id = $3",
+      ["rejected", reason, id]
+    );
+    res.json({ message: "Booking rejected with reason." });
+  } catch (err) {
+    console.error("Error rejecting booking:", err);
+    res.status(500).json({ error: "Failed to reject booking." });
+  }
+},
 
 
 
